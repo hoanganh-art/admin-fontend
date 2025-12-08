@@ -9,16 +9,16 @@ let isEditing = false;        // Chế độ chỉnh sửa
 let currentProductId = null;  // ID sản phẩm đang sửa
 
 // ========== DOM ELEMENTS ==========
-const productsTableBody = document.getElementById("productsTableBody");
-const categoryFilter = document.getElementById("categoryFilter");
-const brandFilter = document.getElementById("brandFilter");
-const stockFilter = document.getElementById("stockFilter");
-const priceFilter = document.getElementById("priceFilter");
-const searchInput = document.querySelector(".search-box input");
-const rowsPerPageSelect = document.getElementById("rowsPerPage");
-const addProductBtn = document.getElementById("addProductBtn");
-const applyFilters = document.getElementById("applyFilters");
-const clearFilters = document.getElementById("clearFilters");
+const productsTableBody = document.getElementById("productsTableBody"); // Thân bảng sản phẩm
+const categoryFilter = document.getElementById("categoryFilter"); //Bộ lọc sản phẩm
+const brandFilter = document.getElementById("brandFilter"); // Bộ lọc thương hiệu
+const stockFilter = document.getElementById("stockFilter"); // Bộ lọc trạng thái kho
+const priceFilter = document.getElementById("priceFilter"); // Bộ lọc khoảng giá
+const searchInput = document.querySelector(".search-box input"); // Input tìm kiếm
+const rowsPerPageSelect = document.getElementById("rowsPerPage"); // Chọn số dòng/trang
+const addProductBtn = document.getElementById("addProductBtn"); // Nút thêm sản phẩm
+const applyFilters = document.getElementById("applyFilters"); // Nút áp dụng bộ lọc
+const clearFilters = document.getElementById("clearFilters"); // Nút xóa bộ lọc
 
 // ========== HÀM CHÍNH ==========
 
@@ -34,11 +34,11 @@ async function renderProductsTable() {
     const filters = {
       page: currentPage,
       per_page: rowsPerPage,
-      ...(categoryFilter.value && { category: categoryFilter.value }),
-      ...(brandFilter.value && { brand: brandFilter.value }),
-      ...(stockFilter.value && { stock_status: stockFilter.value }),
-      ...(priceFilter.value && { price_range: priceFilter.value }),
-      ...(searchInput.value.trim() && { search: searchInput.value.trim() })
+      ...(categoryFilter.value && { category: categoryFilter.value }), // Thêm bộ lọc nếu có giá trị
+      ...(brandFilter.value && { brand: brandFilter.value }), // Thêm bộ lọc nếu có giá trị
+      ...(stockFilter.value && { stock_status: stockFilter.value }), // Thêm bộ lọc nếu có giá trị
+      ...(priceFilter.value && { price_range: priceFilter.value }), // Thêm bộ lọc nếu có giá trị
+      ...(searchInput.value.trim() && { search: searchInput.value.trim() }) // Thêm tìm kiếm nếu có giá trị
     };
 
     // Gọi API lấy dữ liệu
@@ -54,7 +54,7 @@ async function renderProductsTable() {
       const productsArray = dataField.data || dataField['dữ liệu'] || dataField.dữ_liệu;
       
       if (Array.isArray(productsArray)) {
-        products = productsArray;
+        products = productsArray; 
         paginationData = {
           current_page: dataField.current_page || dataField['trang_hiện tại'] || 1,
           total: dataField.total || dataField['tổng'] || 0,
@@ -496,9 +496,9 @@ async function editProduct(productId) {
     const response = await productAPI.getProductById(productId);
     
     if (response.success && response.data) {
-      isEditing = true;
-      currentProductId = productId;
-      openEditModal(response.data); // Cần implement
+      openEditModal(response.data);
+    } else {
+      showToast("Lỗi", "Không thể tải thông tin sản phẩm", "error");
     }
   } catch (error) {
     showToast("Lỗi", "Không thể tải thông tin sản phẩm", "error");
@@ -616,6 +616,221 @@ function showToast(title, message, type = "success") {
 
 // ========== TIỆN ÍCH ==========
 
+/**
+ * 📝 Mở modal thêm sản phẩm mới
+ * 
+ * TÁC DỤNG:
+ *   - Reset form thêm sản phẩm (xóa dữ liệu cũ)
+ *   - Cập nhật tiêu đề modal thành "Thêm Sản Phẩm Mới"
+ *   - Hiển thị modal bằng class 'active'
+ *   - Đánh dấu isEditing = false (chế độ thêm, không phải sửa)
+ * 
+ * CÔNG DỤNG:
+ *   - Cho phép người dùng thêm sản phẩm mới
+ *   - Gọi từ nút "Thêm Sản Phẩm" trên header
+ * 
+ * THAM SỐ: Không có
+ * TRẢ VỀ: Không có
+ */
+function openAddModal() {
+  const productModal = document.getElementById("productModal");
+  const modalTitle = document.getElementById("modalTitle");
+  const productForm = document.getElementById("productForm");
+  
+  if (!productModal) {
+    console.error("Không tìm thấy modal sản phẩm");
+    return;
+  }
+  
+  // Reset form
+  if (productForm) productForm.reset();
+  
+  // Cập nhật tiêu đề
+  if (modalTitle) modalTitle.textContent = "Thêm Sản Phẩm Mới";
+  
+  // Đánh dấu chế độ thêm
+  isEditing = false;
+  currentProductId = null;
+  
+  // Hiển thị modal
+  productModal.classList.add("active");
+  console.log("✅ Mở modal thêm sản phẩm");
+}
+
+/**
+ * ✏️ Mở modal chỉnh sửa sản phẩm với dữ liệu sản phẩm
+ * 
+ * TÁC DỤNG:
+ *   - Cập nhật tiêu đề modal thành "Chỉnh Sửa Sản Phẩm"
+ *   - Điền dữ liệu sản phẩm vào các input trong form
+ *   - Hiển thị modal
+ *   - Đánh dấu isEditing = true (chế độ chỉnh sửa)
+ * 
+ * CÔNG DỤNG:
+ *   - Cho phép người dùng sửa thông tin sản phẩm
+ *   - Được gọi khi click nút "Sửa" trong bảng
+ * 
+ * THAM SỐ:
+ *   - productData (object): Dữ liệu sản phẩm từ API
+ *     {id, product_name, sku, price, stock, brand, category, ...}
+ * 
+ * TRẢ VỀ: Không có
+ */
+function openEditModal(productData) {
+  const productModal = document.getElementById("productModal");
+  const modalTitle = document.getElementById("modalTitle");
+  const productForm = document.getElementById("productForm");
+  
+  if (!productModal) {
+    console.error("Không tìm thấy modal sản phẩm");
+    return;
+  }
+  
+  // Cập nhật tiêu đề
+  if (modalTitle) modalTitle.textContent = "Chỉnh Sửa Sản Phẩm";
+  
+  // Đánh dấu chế độ chỉnh sửa
+  isEditing = true;
+  currentProductId = productData.id;
+  
+  // Điền dữ liệu vào form
+  const fields = {
+    productName: 'product_name',
+    productSku: 'sku',
+    productCategory: 'category',
+    productBrand: 'brand_id', // hoặc brand tùy API
+    productPrice: 'price',
+    productCost: 'cost',
+    productStock: 'stock',
+    productStockAlert: 'stock_alert',
+    productDescription: 'description'
+  };
+  
+  // Điền từng trường dữ liệu
+  Object.keys(fields).forEach(fieldId => {
+    const element = document.getElementById(fieldId);
+    const dataKey = fields[fieldId];
+    
+    if (element && productData[dataKey] !== undefined) {
+      if (element.tagName === 'SELECT') {
+        element.value = productData[dataKey];
+      } else if (element.tagName === 'TEXTAREA') {
+        element.textContent = productData[dataKey];
+      } else {
+        element.value = productData[dataKey];
+      }
+    }
+  });
+  
+  // Điền radio button trạng thái
+  const statusRadios = document.querySelectorAll('input[name="productStatus"]');
+  statusRadios.forEach(radio => {
+    radio.checked = radio.value === (productData.status || 'active');
+  });
+  
+  // Hiển thị modal
+  productModal.classList.add("active");
+  console.log(`✅ Mở modal chỉnh sửa sản phẩm ID: ${productData.id}`);
+}
+
+/**
+ * ❌ Đóng modal sản phẩm
+ * 
+ * TÁC DỤNG:
+ *   - Xóa class 'active' khỏi modal (ẩn modal)
+ *   - Reset form để chuẩn bị mở lại
+ * 
+ * CÔNG DỤNG:
+ *   - Tắt modal khi click nút "Hủy" hoặc "X"
+ * 
+ * THAM SỐ: Không có
+ * TRẢ VỀ: Không có
+ */
+function closeProductModal() {
+  const productModal = document.getElementById("productModal");
+  const productForm = document.getElementById("productForm");
+  
+  if (productModal) {
+    productModal.classList.remove("active");
+  }
+  
+  if (productForm) {
+    productForm.reset();
+  }
+  
+  console.log("✅ Đóng modal sản phẩm");
+}
+
+/**
+ * 💾 Lưu sản phẩm (thêm hoặc chỉnh sửa)
+ * 
+ * TÁC DỤNG:
+ *   - Kiểm tra form có hợp lệ không
+ *   - Lấy dữ liệu từ các input
+ *   - Gọi API thêm hoặc sửa sản phẩm
+ *   - Đóng modal
+ *   - Load lại danh sách sản phẩm
+ *   - Hiển thị thông báo thành công hoặc lỗi
+ * 
+ * CÔNG DỤNG:
+ *   - Lưu sản phẩm mới hoặc cập nhật sản phẩm cũ
+ *   - Gọi từ nút "Lưu Sản Phẩm" trong modal
+ * 
+ * THAM SỐ: Không có (sử dụng dữ liệu từ form)
+ * TRẢ VỀ: Không có
+ */
+async function saveProduct() {
+  const productForm = document.getElementById("productForm");
+  
+  // Kiểm tra form có hợp lệ
+  if (!productForm || !productForm.checkValidity()) {
+    showToast("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc", "error");
+    return;
+  }
+  
+  try {
+    // Lấy dữ liệu từ form
+    const formData = {
+      product_name: document.getElementById("productName")?.value,
+      sku: document.getElementById("productSku")?.value,
+      category: document.getElementById("productCategory")?.value,
+      brand: document.getElementById("productBrand")?.value,
+      price: parseInt(document.getElementById("productPrice")?.value),
+      cost: parseInt(document.getElementById("productCost")?.value),
+      stock: parseInt(document.getElementById("productStock")?.value),
+      stock_alert: parseInt(document.getElementById("productStockAlert")?.value),
+      description: document.getElementById("productDescription")?.value,
+      status: document.querySelector('input[name="productStatus"]:checked')?.value || 'active'
+    };
+    
+    let response;
+    
+    if (isEditing && currentProductId) {
+      // Chế độ chỉnh sửa: Gọi API update
+      response = await productAPI.updateProduct(currentProductId, formData);
+      console.log(`✏️ Cập nhật sản phẩm ID: ${currentProductId}`);
+    } else {
+      // Chế độ thêm: Gọi API create
+      response = await productAPI.createProduct(formData);
+      console.log("➕ Thêm sản phẩm mới");
+    }
+    
+    if (response.success) {
+      closeProductModal();
+      currentPage = 1;
+      await renderProductsTable();
+      
+      const message = isEditing ? "Đã cập nhật sản phẩm thành công" : "Đã thêm sản phẩm thành công";
+      showToast("Thành công", message, "success");
+    } else {
+      showToast("Lỗi", response.message || "Không thể lưu sản phẩm", "error");
+    }
+  } catch (error) {
+    console.error("❌ Lỗi khi lưu sản phẩm:", error);
+    showToast("Lỗi", "Không thể lưu sản phẩm", "error");
+  }
+}
+
 /** Xóa tất cả filter */
 function clearAllFilters() {
   if (categoryFilter) categoryFilter.value = "";
@@ -644,27 +859,77 @@ async function initializeApp() {
     setupFilterEvents();
     setupPaginationEvents();
     
-    // Sự kiện thêm sản phẩm
+    // ===== SỰ KIỆN MODAL THÊM/SỬA SẢN PHẨM =====
+    
+    // Nút thêm sản phẩm
     if (addProductBtn) {
-      addProductBtn.addEventListener("click", function() {
-        isEditing = false;
-        currentProductId = null;
-        // openAddModal(); // Cần implement
+      addProductBtn.addEventListener("click", openAddModal);
+    }
+    
+    // Nút lưu sản phẩm
+    const saveProductBtn = document.getElementById("saveProductBtn");
+    if (saveProductBtn) {
+      saveProductBtn.addEventListener("click", saveProduct);
+    }
+    
+    // Nút hủy / đóng modal
+    const closeModalBtn = document.getElementById("closeModal");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const productModal = document.getElementById("productModal");
+    
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener("click", closeProductModal);
+    }
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", closeProductModal);
+    }
+    
+    // Đóng modal khi click bên ngoài
+    if (productModal) {
+      productModal.addEventListener("click", function(event) {
+        if (event.target === productModal) {
+          closeProductModal();
+        }
       });
     }
     
-    // Sự kiện xóa sản phẩm
+    // ===== SỰ KIỆN MODAL XÓA SẢN PHẨM =====
+    
+    // Nút xóa sản phẩm
     const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
-    if (confirmDeleteBtn) confirmDeleteBtn.addEventListener("click", deleteProduct);
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener("click", deleteProduct);
+    }
     
-    // Sự kiện đóng modal
+    // Nút hủy xóa / đóng modal
     const closeDeleteModalBtn = document.getElementById("closeDeleteModal");
-    if (closeDeleteModalBtn) closeDeleteModalBtn.addEventListener("click", closeDeleteModal);
+    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+    const deleteModal = document.getElementById("deleteModal");
     
-    window.addEventListener("click", function(event) {
-      const deleteModal = document.getElementById("deleteModal");
-      if (deleteModal && event.target === deleteModal) closeDeleteModal();
-    });
+    if (closeDeleteModalBtn) {
+      closeDeleteModalBtn.addEventListener("click", closeDeleteModal);
+    }
+    if (cancelDeleteBtn) {
+      cancelDeleteBtn.addEventListener("click", closeDeleteModal);
+    }
+    
+    // Đóng modal xóa khi click bên ngoài
+    if (deleteModal) {
+      deleteModal.addEventListener("click", function(event) {
+        if (event.target === deleteModal) {
+          closeDeleteModal();
+        }
+      });
+    }
+    
+    // Đóng toast
+    const closeToastBtn = document.getElementById("closeToast");
+    const toast = document.getElementById("toast");
+    if (closeToastBtn && toast) {
+      closeToastBtn.addEventListener("click", function() {
+        toast.classList.remove("show");
+      });
+    }
     
     showToast("Thành công", "Ứng dụng đã sẵn sàng", "success");
   } catch (error) {
@@ -716,3 +981,7 @@ window.editProduct = editProduct;
 window.showDeleteModal = showDeleteModal;
 window.clearAllFilters = clearAllFilters;
 window.renderProductsTable = renderProductsTable;
+window.openAddModal = openAddModal;
+window.openEditModal = openEditModal;
+window.closeProductModal = closeProductModal;
+window.saveProduct = saveProduct;
