@@ -51,7 +51,14 @@ class ProductAPIService {
       }
       // Trả về dữ liệu JSON từ response
       const data = await response.json();
-      console.log('`✅ API response:`, data); // Log dữ liệu nhận được');
+      console.log('✅ API response:', data); // Log dữ liệu nhận được
+      console.log('Response structure check:', {
+        isArray: Array.isArray(data),
+        hasSuccess: 'success' in data,
+        hasData: 'data' in data,
+        dataType: typeof data.data,
+        dataIsArray: Array.isArray(data.data)
+      });
       return data;
 
     } catch (error) {
@@ -68,6 +75,10 @@ class ProductAPIService {
     const endpoint = queryString
       ? `${API_ENDPOINTS.products}?${queryString}`
       : API_ENDPOINTS.products;
+    
+    console.log("🔗 API Request URL:", `${this.baseUrl}${endpoint}`);
+    console.log("📤 Parameters:", params);
+    
     return this.request(endpoint);
   }
 

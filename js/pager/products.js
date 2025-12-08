@@ -1,142 +1,178 @@
-// ========== DỮ LIỆU MẪU ==========
+// products.js
+// File này xử lý logic hiển thị dữ liệu từ API lên giao diện
 
+// ========== PHẦN 1: KHAI BÁO BIẾN TOÀN CỤC ==========
 
-// ========== KHỞI TẠO BIẾN ==========
-let currentPage = 1; // Trang hiện tại
-let rowsPerPage = 12; // Số dòng trên mỗi trang
-let filteredProducts = []; // Sản phẩm sau khi lọc
-let productToDelete = null; // ID sản phẩm cần xóa
-let isEditing = false; // Chế độ chỉnh sửa
-let currentProductId = null; // ID sản phẩm hiện tại đang chỉnh sửa
+// Các biến lưu trạng thái của ứng dụng
+let currentPage = 1;          // Số trang hiện tại (bắt đầu từ 1)
+let rowsPerPage = 12;         // Số sản phẩm hiển thị mỗi trang
+let filteredProducts = [];     // Mảng lưu danh sách sản phẩm sau khi filter
+let productToDelete = null;   // Lưu ID sản phẩm cần xóa (dùng cho modal xác nhận)
+let isEditing = false;        // Cờ kiểm tra đang ở chế độ chỉnh sửa (true) hay thêm mới (false)
+let currentProductId = null;  // Lưu ID sản phẩm đang được chỉnh sửa
 
-// Khởi tạo API Service (đã có trong products_API.js)
-const apiService = new ProductsAPI(API_BASE_URL);
+// ========== PHẦN 2: LẤY CÁC PHẦN TỬ HTML TRONG DOM ==========
 
-//lấy các phần tử HTML
+// Lấy phần tử tbody của bảng để chèn dữ liệu
+const productsTableBody = document.getElementById("productsTableBody");
 
-// DOM Elements
-const toggleSidebar = document.getElementById("toggleSidebar"); // Nút thu gọn sidebar
-const addProductBtn = document.getElementById("addProductBtn"); // Nút thêm sản phẩm mới
-const productModal = document.getElementById("productModal"); // Modal thêm/chỉnh sửa sản phẩm
-const deleteModal = document.getElementById("deleteModal"); // Modal xác nhận xóa sản phẩm
-const closeModal = document.getElementById("closeModal"); // Nút đóng modal thêm/chỉnh sửa sản phẩm
-const closeDeleteModal = document.getElementById("closeDeleteModal"); // Nút đóng modal xóa sản phẩm
-const cancelBtn = document.getElementById("cancelBtn"); // Nút hủy trong modal thêm/chỉnh sửa sản phẩm
-const cancelDeleteBtn = document.getElementById("cancelDeleteBtn"); // Nút hủy trong modal xóa sản phẩm
-const saveProductBtn = document.getElementById("saveProductBtn"); // Nút lưu sản phẩm trong modal
-const confirmDeleteBtn = document.getElementById("confirmDeleteBtn"); // Nút xác nhận xóa sản phẩm trong modal
-const productsTableBody = document.getElementById("productsTableBody"); // Thân bảng sản phẩm
-const selectAll = document.getElementById("selectAll"); // Checkbox chọn tất cả
-const categoryFilter = document.getElementById("categoryFilter"); // Bộ lọc danh mục
-const brandFilter = document.getElementById("brandFilter"); // Bộ lọc thương hiệu
-const stockFilter = document.getElementById("stockFilter"); // Bộ lọc trạng thái kho
-const priceFilter = document.getElementById("priceFilter"); // Bộ lọc giá
-const applyFilters = document.getElementById("applyFilters"); // Nút áp dụng bộ lọc
-const clearFilters = document.getElementById("clearFilters"); // Nút xóa bộ lọc
-const resetFilters = document.getElementById("resetFilters"); // Nút đặt lại bộ lọc
-const rowsPerPageSelect = document.getElementById("rowsPerPage"); // Chọn số dòng trên mỗi trang
-const refreshTable = document.getElementById("refreshTable"); // Nút làm mới bảng
-const exportBtn = document.getElementById("exportBtn"); // Nút xuất file Excel
-const searchInput = document.querySelector(".search-box input"); // Ô tìm kiếm
-const modalTitle = document.getElementById("modalTitle"); // Tiêu đề modal thêm/chỉnh sửa sản phẩm
-const deleteProductName = document.getElementById("deleteProductName"); // Tên sản phẩm trong modal xóa
-const productForm = document.getElementById("productForm"); // Form thêm/chỉnh sửa sản phẩm
-const imageUpload = document.getElementById("imageUpload"); // Nút tải ảnh sản phẩm
-const imagePreview = document.getElementById("imagePreview"); // Khung xem trước ảnh sản phẩm
-const toast = document.getElementById("toast"); // Thông báo toast
-const toastTitle = document.getElementById("toastTitle"); // Tiêu đề thông báo toast
-const toastMessage = document.getElementById("toastMessage"); // Nội dung thông báo toast
-const toastIcon = document.getElementById("toastIcon"); // Biểu tượng thông báo toast
-const closeToast = document.getElementById("closeToast"); // Nút đóng thông báo toast
-// ========== SIDEBAR TOGGLE ==========
-toggleSidebar.addEventListener("click", function () {
-  document.querySelector(".sidebar").classList.toggle("collapsed");
-  const icon = this.querySelector("i");
-  icon.style.transform = "rotate(180deg)";
-  setTimeout(() => {
-    icon.style.transform = "";
-  }, 300);
-});
+// Lấy các ô input filter
+const categoryFilter = document.getElementById("categoryFilter");
+const brandFilter = document.getElementById("brandFilter");
+const stockFilter = document.getElementById("stockFilter");
+const priceFilter = document.getElementById("priceFilter");
 
-// ========== MENU ACTIVE STATE ==========
-const menuItems = document.querySelectorAll(".menu-item");
-menuItems.forEach((item) => {
-  item.addEventListener("click", function (e) {
-    if (this.getAttribute("href") === "#") {
-      e.preventDefault();
-    }
-    menuItems.forEach((i) => i.classList.remove("active"));
-    this.classList.add("active");
-  });
-});
+// Lấy ô tìm kiếm
+const searchInput = document.querySelector(".search-box input");
 
-// ========== RENDER BẢNG SẢN PHẨM ==========
+// Lấy các nút phân trang
+const rowsPerPageSelect = document.getElementById("rowsPerPage");
+
+// Lấy các nút thao tác
+const addProductBtn = document.getElementById("addProductBtn");
+const applyFilters = document.getElementById("applyFilters");
+const clearFilters = document.getElementById("clearFilters");
+
+// ========== PHẦN 3: HÀM CHÍNH - LẤY VÀ HIỂN THỊ SẢN PHẨM ==========
+
+/**
+ * Hàm chính: Lấy dữ liệu từ API và hiển thị lên bảng
+ */
 async function renderProductsTable() {
   try {
-    productsTableBody.innerHTML = `
-      <tr>
-        <td colspan="8">
-          <div class="empty-state">
-            <i class="fas fa-spinner fa-spin" style="color: var(--primary-color); font-size: 32px; margin-bottom: 16px;"></i>
-            <p style="color: var(--gray-600);">Đang tải dữ liệu...</p>
-          </div>
-        </td>
-      </tr>
-    `;
-
-    // Lấy dữ liệu từ API
-    const filters = {
-      category: categoryFilter.value || undefined,
-      brand_id: brandFilter.value || undefined,
-      stock_status: stockFilter.value || undefined,
-      price_range: priceFilter.value || undefined,
-      search: searchInput.value.trim() || undefined,
-      page: currentPage,
-      per_page: rowsPerPage
-    };
-
-    const response = await apiService.getProducts(filters);
+    // 1. Hiển thị trạng thái loading
+    showLoadingState();
     
-    if (response.success && response.data) {
-      const products = response.data.data || [];
-      filteredProducts = products;
-      renderProductsList(products);
-      updateTableInfo(response.data);
-      updatePaginationInfo(response.data);
-    } else {
-      throw new Error(response.message || "Lỗi tải dữ liệu");
+    // 2. Tạo object filters từ giá trị của các ô filter
+    const filters = {
+      page: currentPage,                            // Trang hiện tại
+      per_page: rowsPerPage                         // Số item mỗi trang
+    };
+    
+    // Chỉ thêm filter nếu có giá trị (không gửi undefined)
+    if (categoryFilter.value) filters.category = categoryFilter.value;
+    if (brandFilter.value) filters.brand = brandFilter.value;
+    if (stockFilter.value) filters.stock_status = stockFilter.value;
+    if (priceFilter.value) filters.price_range = priceFilter.value;
+    if (searchInput.value.trim()) filters.search = searchInput.value.trim();
+    
+    console.log("🔍 Filters đang dùng:", filters);
+
+    // 3. GỌI API ĐỂ LẤY DỮ LIỆU
+    // productAPI.getProducts() trả về Promise
+    const response = await productAPI.getProducts(filters);
+    
+    console.log("📦 Dữ liệu nhận từ API:", response);
+    console.log("📦 Type of response:", typeof response);
+    console.log("📦 Is array:", Array.isArray(response));
+    console.log("📦 response.data:", response?.data);
+    console.log("📦 response.data.data:", response?.data?.data);
+
+    // 4. KIỂM TRA KẾT QUẢ TỪ API - Xử lý flexible với các format khác nhau
+    let products = [];
+    let paginationData = {};
+    
+    // API trả về: {data: {current_page, data: [...], total, per_page, ...}} hoặc tiếng Việt
+    // Normalize response data - xử lý cả tiếng Anh và tiếng Việt
+    const dataField = response.data || response['dữ liệu'] || response.dữ_liệu;
+    
+    if (dataField) {
+      // Lấy mảng sản phẩm - xử lý cả tiếng Anh và tiếng Việt
+      const productsArray = dataField.data || dataField['dữ liệu'] || dataField.dữ_liệu;
+      
+      if (Array.isArray(productsArray)) {
+        products = productsArray;
+        
+        // Normalize pagination data - xử lý cả tiếng Anh và tiếng Việt
+        paginationData = {
+          current_page: dataField.current_page || dataField['trang_hiện tại'] || 1,
+          page: dataField.current_page || dataField['trang_hiện tại'] || 1,
+          total: dataField.total || dataField['tổng'] || 0,
+          per_page: dataField.per_page || dataField['mỗi_trang'] || rowsPerPage,
+          last_page: dataField.last_page || dataField['trang_cuối_cùng'] || 
+                     Math.ceil((dataField.total || dataField['tổng'] || 0) / (dataField.per_page || dataField['mỗi_trang'] || rowsPerPage))
+        };
+        console.log("✅ Format detected: response.data (Laravel paginated - English or Vietnamese)");
+      }
     }
+    // Fallback: response là mảng trực tiếp
+    else if (Array.isArray(response)) {
+      products = response;
+      paginationData = {
+        total: products.length,
+        page: 1,
+        per_page: rowsPerPage,
+        last_page: 1
+      };
+      console.log("✅ Format detected: response is array");
+    }
+    
+    console.log("📦 Extracted products count:", products.length);
+    console.log("📦 Sample product:", products[0]);
+    console.log("📦 Pagination data:", paginationData);
+    
+    if (products.length > 0) {
+      // Lưu vào biến filteredProducts để dùng sau
+      filteredProducts = products;
+      
+      // 5. HIỂN THỊ DANH SÁCH SẢN PHẨM LÊN BẢNG
+      renderProductsList(products);
+      
+      // 6. CẬP NHẬT THÔNG TIN PHÂN TRANG
+      if (paginationData.total !== undefined) {
+        updateTableInfo(paginationData);
+      }
+      if (paginationData.page !== undefined) {
+        updatePaginationInfo(paginationData);
+      }
+      
+      console.log(`✅ Đã tải ${products.length} sản phẩm`);
+    } else {
+      // Nếu không có dữ liệu nhưng API trả về success, hiển thị empty state
+      console.warn("⚠️ Không có sản phẩm nào");
+      console.warn("Response structure:", {
+        hasData: 'data' in response,
+        responseKeys: Object.keys(response),
+        dataKeys: response.data ? Object.keys(response.data) : null
+      });
+      filteredProducts = [];
+      renderProductsList([]); // Hiển thị empty state
+    }
+    
   } catch (error) {
-    console.error("Error loading products:", error);
-    productsTableBody.innerHTML = `
-      <tr>
-        <td colspan="8">
-          <div class="empty-state">
-            <i class="fas fa-exclamation-triangle" style="color: var(--danger-color); font-size: 32px; margin-bottom: 16px;"></i>
-            <h3 style="color: var(--gray-800); margin-bottom: 12px;">Lỗi tải dữ liệu</h3>
-            <p style="color: var(--gray-600); margin-bottom: 16px;">${error.message}</p>
-            <button class="btn btn-primary" onclick="renderProductsTable()">
-              <i class="fas fa-redo"></i> Thử lại
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
+    // XỬ LÝ LỖI NẾU CÓ
+    console.error("💥 Lỗi khi tải sản phẩm:", error);
+    
+    // Hiển thị thông báo lỗi lên giao diện
+    showErrorState(error.message);
+    
+    // Hiển thị toast thông báo
+    showToast("Lỗi", `Không thể tải dữ liệu: ${error.message}`, "error");
   }
 }
 
-// Hàm render danh sách sản phẩm
+// ========== PHẦN 4: HÀM HIỂN THỊ DANH SÁCH SẢN PHẨM ==========
+
+/**
+ * Hiển thị danh sách sản phẩm lên bảng HTML
+ * @param {Array} products - Mảng chứa các object sản phẩm
+ */
 function renderProductsList(products) {
+  // 1. Xóa toàn bộ nội dung cũ trong tbody
   productsTableBody.innerHTML = "";
 
-  if (products.length === 0) {
+  // 2. KIỂM TRA NẾU KHÔNG CÓ SẢN PHẨM NÀO
+  if (!products || products.length === 0) {
+    // Hiển thị thông báo "không có dữ liệu"
     productsTableBody.innerHTML = `
       <tr>
         <td colspan="8">
           <div class="empty-state">
-            <i class="fas fa-box-open" style="color: var(--gray-400); font-size: 32px; margin-bottom: 16px;"></i>
-            <h3 style="color: var(--gray-800); margin-bottom: 12px;">Không tìm thấy sản phẩm</h3>
-            <p style="color: var(--gray-600); margin-bottom: 16px;">Không có sản phẩm nào phù hợp với tiêu chí tìm kiếm của bạn.</p>
+            <i class="fas fa-box-open" style="color: #6c757d; font-size: 32px; margin-bottom: 16px;"></i>
+            <h3 style="margin-bottom: 12px;">Không tìm thấy sản phẩm</h3>
+            <p style="color: #6c757d; margin-bottom: 16px;">
+              Không có sản phẩm nào phù hợp với tiêu chí tìm kiếm của bạn.
+            </p>
             <button class="btn btn-primary" onclick="clearAllFilters()">
               <i class="fas fa-times"></i> Xóa tất cả bộ lọc
             </button>
@@ -144,621 +180,984 @@ function renderProductsList(products) {
         </td>
       </tr>
     `;
-    return;
+    return; // Dừng hàm ngay tại đây
   }
 
+  // 3. DUYỆT QUA TỪNG SẢN PHẨM VÀ TẠO HTML
   products.forEach((product) => {
-    const categoryClass = getCategoryClass(product.category);
-    const categoryText = getCategoryText(product.category);
-    const brandText = getBrandText(product.brand_id, product.brand);
-    const stockStatus = getStockStatus(product.stock);
-
+    // 3.1. Xử lý dữ liệu để hiển thị đẹp
+    // Normalize product data - xử lý cả tiếng Anh và tiếng Việt
+    const productName = product.product_name || product['tên_sản_phẩm'] || 'N/A';
+    const category = product.category || product['danh_mục'] || 'N/A';
+    const categoryText = getCategoryText(category);
+    const brandText = (product.brand && product.brand.brand_name) || 
+                      product.brand_name || 
+                      product['tên_thương_hiệu'] || 
+                      product.brand || 
+                      "Không xác định";
+    const stock = product.stock || product['tồn_kho'] || 0;
+    const stockStatus = getStockStatus(stock);
+    const price = product.price || product['giá'] || 0;
+    const formattedPrice = formatPrice(price);
+    const sku = product.sku || product['mã_sku'] || 'N/A';
+    const image = product.image || product['hình_ảnh'] || null;
+    
+    // 3.2. Tạo một dòng (row) mới trong bảng
     const row = document.createElement("tr");
+    
+    // 3.3. Tạo HTML cho dòng này
     row.innerHTML = `
       <td>
+        <!-- Checkbox để chọn sản phẩm -->
         <input type="checkbox" class="product-checkbox" data-id="${product.id}">
       </td>
       <td>
+        <!-- Cột thông tin sản phẩm -->
         <div class="product-info">
+          <!-- Ảnh sản phẩm -->
           <div class="product-image">
-            <img src="${product.image || 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&h=400&fit=crop'}" 
-                 alt="${product.product_name}"
-                 onerror="this.src='https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&h=400&fit=crop'">
+            <img src="${image || 'https://via.placeholder.com/50'}" 
+                 alt="${productName}"
+                 onerror="this.src='https://via.placeholder.com/50'">
           </div>
+          <!-- Tên và SKU -->
           <div class="product-details">
-            <div class="product-name">${product.product_name}</div>
-            <div class="product-sku">SKU: ${product.sku || 'N/A'}</div>
+            <div class="product-name">${productName}</div>
+            <div class="product-sku">SKU: ${sku}</div>
           </div>
         </div>
       </td>
       <td>
-        <span class="product-category ${categoryClass}">${categoryText}</span>
+        <!-- Cột danh mục -->
+        <span class="product-category">${categoryText}</span>
       </td>
-      <td>${brandText}</td>
-      <td class="product-price">${formatPrice(product.price)}₫</td>
-      <td>${product.stock}</td>
       <td>
+        <!-- Cột thương hiệu -->
+        ${brandText}
+      </td>
+      <td class="product-price">
+        <!-- Cột giá (đã định dạng) -->
+        ${formattedPrice}₫
+      </td>
+      <td>
+        <!-- Cột số lượng tồn kho -->
+        ${stock}
+      </td>
+      <td>
+        <!-- Cột trạng thái kho (có màu sắc) -->
         <span class="stock-status ${stockStatus}">
           ${getStockStatusText(stockStatus)}
         </span>
       </td>
       <td>
+        <!-- Cột thao tác với các nút -->
         <div class="product-actions">
+          <!-- Nút xem chi tiết -->
           <button class="action-btn view" onclick="viewProduct(${product.id})" title="Xem chi tiết">
             <i class="fas fa-eye"></i>
           </button>
+          <!-- Nút chỉnh sửa -->
           <button class="action-btn edit" onclick="editProduct(${product.id})" title="Chỉnh sửa">
             <i class="fas fa-edit"></i>
           </button>
-          <button class="action-btn delete" onclick="showDeleteModal(${product.id}, '${product.product_name.replace(/'/g, "\\'")}')" title="Xóa">
+          <!-- Nút xóa -->
+          <button class="action-btn delete" onclick="showDeleteModal(${product.id}, '${escapeHtml(productName)}')" title="Xóa">
             <i class="fas fa-trash"></i>
           </button>
         </div>
       </td>
     `;
+    
+    // 3.4. Thêm dòng vừa tạo vào bảng
     productsTableBody.appendChild(row);
   });
 }
 
-// ========== HÀM HỖ TRỢ ==========
-function getCategoryClass(category) {
-  const classes = {
-    smartphone: "category-smartphone",
-    tablet: "category-tablet",
-    accessory: "category-accessory",
-    watch: "category-watch",
-  };
-  return classes[category] || "category-smartphone";
-}
+// ========== PHẦN 5: CÁC HÀM HỖ TRỢ ĐỊNH DẠNG DỮ LIỆU ==========
 
-function getCategoryText(category) {
-  const texts = {
-    smartphone: "Điện thoại",
-    tablet: "Máy tính bảng",
-    accessory: "Phụ kiện",
-    watch: "Đồng hồ",
-    laptop: "Laptop",
-  };
-  return texts[category] || category;
-}
-
-function getBrandText(brandId, brandObj) {
-  if (brandObj && typeof brandObj === "object") {
-    return brandObj.brand_name || "Không xác định";
-  }
-  // Nếu chỉ là ID, hiển thị ID
-  return `Brand ID: ${brandId}`;
-}
-
-function getStockStatus(stock, alertLevel) {
-  if (stock === 0) return "out-of-stock";
-  if (stock <= 5) return "low-stock";
-  return "in-stock";
-}
-
-function getStockStatusText(status) {
-  const texts = {
-    "in-stock": "Còn hàng",
-    "low-stock": "Sắp hết",
-    "out-of-stock": "Hết hàng",
-  };
-  return texts[status] || status;
-}
-
+/**
+ * Định dạng số tiền (thêm dấu chấm phân cách hàng nghìn)
+ * @param {number} price - Số tiền cần định dạng
+ * @returns {string} - Chuỗi đã định dạng
+ */
 function formatPrice(price) {
+  // Kiểm tra nếu price không phải số
+  if (!price || isNaN(price)) return "0";
+  
+  // Chuyển số thành chuỗi và thêm dấu chấm mỗi 3 chữ số
+  // Ví dụ: 25490000 => "25.490.000"
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
+/**
+ * Chuyển mã danh mục thành tên hiển thị
+ * @param {string} category - Mã danh mục (vd: "smartphone")
+ * @returns {string} - Tên danh mục bằng tiếng Việt
+ */
+function getCategoryText(category) {
+  // Object ánh xạ mã danh mục -> tên tiếng Việt
+  const categoryMap = {
+    smartphone: "Điện thoại",
+    tablet: "Máy tính bảng", 
+    accessory: "Phụ kiện",
+    watch: "Đồng hồ thông minh",
+    laptop: "Laptop",
+  };
+  
+  // Nếu có trong map thì trả về tên, không thì giữ nguyên
+  return categoryMap[category] || category;
+}
+
+/**
+ * Xác định trạng thái kho hàng dựa trên số lượng
+ * @param {number} stock - Số lượng tồn kho
+ * @returns {string} - Mã trạng thái ("in-stock", "low-stock", "out-of-stock")
+ */
+function getStockStatus(stock) {
+  // Kiểm tra stock có hợp lệ không
+  if (stock === undefined || stock === null) return "unknown";
+  
+  // Xác định trạng thái dựa trên số lượng
+  if (stock === 0) return "out-of-stock";       // Hết hàng nếu stock = 0
+  if (stock <= 5) return "low-stock";          // Sắp hết nếu stock <= 5
+  return "in-stock";                           // Còn hàng nếu stock > 5
+}
+
+/**
+ * Chuyển mã trạng thái thành text hiển thị
+ * @param {string} status - Mã trạng thái
+ * @returns {string} - Text hiển thị bằng tiếng Việt
+ */
+function getStockStatusText(status) {
+  const statusMap = {
+    "in-stock": "Còn hàng",
+    "low-stock": "Sắp hết", 
+    "out-of-stock": "Hết hàng",
+    "unknown": "Không xác định"
+  };
+  return statusMap[status] || status;
+}
+
+/**
+ * Escape HTML để tránh tấn công XSS (Cross-Site Scripting)
+ * @param {string} text - Chuỗi cần escape
+ * @returns {string} - Chuỗi đã escape
+ */
+function escapeHtml(text) {
+  // Tạo một thẻ div ẩn
+  const div = document.createElement('div');
+  
+  // Gán text vào textContent (tự động escape HTML)
+  div.textContent = text;
+  
+  // Lấy lại nội dung đã được escape
+  return div.innerHTML;
+}
+
+// ========== PHẦN 6: HÀM CẬP NHẬT THÔNG TIN BẢNG ==========
+
+/**
+ * Cập nhật thông tin phân trang dưới bảng
+ * @param {object} paginationData - Dữ liệu phân trang từ API
+ */
 function updateTableInfo(paginationData) {
-  if (!paginationData) return;
-  const total = paginationData.total || 0;
-  const from = paginationData.from || 0;
-  const to = paginationData.to || 0;
+  // Kiểm tra nếu không có dữ liệu phân trang
+  if (!paginationData) {
+    console.warn("Không có dữ liệu phân trang");
+    return;
+  }
+  
+  // Lấy các thông số từ dữ liệu phân trang
+  const total = paginationData.total || 0;         // Tổng số sản phẩm
+  const from = paginationData.from || 0;           // Sản phẩm bắt đầu (vd: 1)
+  const to = paginationData.to || 0;               // Sản phẩm kết thúc (vd: 12)
+  
+  // Tìm phần tử hiển thị thông tin
   const infoElement = document.querySelector(".table-info");
+  
   if (infoElement) {
-    infoElement.innerHTML = `Hiển thị <strong>${from}-${to}</strong> trong tổng số <strong>${total}</strong> sản phẩm`;
+    // Cập nhật nội dung HTML
+    infoElement.innerHTML = `
+      Hiển thị <strong>${from}-${to}</strong> trong tổng số <strong>${total}</strong> sản phẩm
+    `;
   }
 }
 
-function updatePagination(paginationData) {
+/**
+ * Cập nhật thông tin phân trang (số trang, nút next/prev)
+ * @param {object} paginationData - Dữ liệu phân trang từ API
+ */
+function updatePaginationInfo(paginationData) {
   if (!paginationData) return;
-  const totalPages = paginationData.last_page || 1;
-  const paginationContainer = document.querySelector(".pagination");
-  const numberButtons = paginationContainer.querySelectorAll(
-    ".pagination-btn:not(#firstPage):not(#prevPage):not(#nextPage):not(#lastPage)"
-  );
+  
+  // Lấy thông tin phân trang - xử lý các format khác nhau từ API
+  const currentPage = paginationData.current_page || paginationData.page || 1;
+  const totalItems = paginationData.total || 0;
+  const itemsPerPage = paginationData.per_page || rowsPerPage || 12;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || paginationData.last_page || 1;
+  
+  console.log(`📄 Phân trang: trang ${currentPage}/${totalPages}`);
+  
+  // Cập nhật các nút phân trang
+  updatePaginationButtons(currentPage, totalPages);
+}
 
-  // Cập nhật số trang
-  numberButtons.forEach((btn, index) => {
-    const pageNum = index + 1;
-    if (pageNum <= totalPages) {
-      btn.textContent = pageNum;
-      btn.style.display = "flex";
-      btn.classList.toggle("active", pageNum === currentPage);
+/**
+ * Cập nhật trạng thái các nút phân trang
+ * @param {number} currentPage - Trang hiện tại
+ * @param {number} totalPages - Tổng số trang
+ */
+function updatePaginationButtons(currentPage, totalPages) {
+  // Lấy container chứa các nút phân trang
+  const paginationContainer = document.querySelector(".pagination");
+  if (!paginationContainer) return;
+  
+  // 1. CẬP NHẬT CÁC NÚT SỐ TRANG (1, 2, 3, 4, 5)
+  
+  // Lấy tất cả nút số trang (không bao gồm nút điều hướng)
+  const pageButtons = paginationContainer.querySelectorAll(
+    '.pagination-btn:not(#firstPage):not(#prevPage):not(#nextPage):not(#lastPage)'
+  );
+  
+  // Tính toán phạm vi trang hiển thị (chỉ hiển thị 5 trang quanh trang hiện tại)
+  let startPage = Math.max(1, currentPage - 2);     // Trang bắt đầu
+  let endPage = Math.min(totalPages, startPage + 4); // Trang kết thúc
+  
+  // Điều chỉnh nếu khoảng cách quá ngắn
+  if (endPage - startPage < 4) {
+    startPage = Math.max(1, endPage - 4);
+  }
+  
+  // Duyệt qua 5 nút số trang
+  pageButtons.forEach((btn, index) => {
+    const pageNum = startPage + index; // Tính số trang cho nút này
+    
+    if (pageNum <= endPage && pageNum <= totalPages) {
+      // Hiển thị nút này
+      btn.textContent = pageNum;              // Đặt số trang
+      btn.style.display = 'flex';             // Hiển thị nút
+      btn.classList.toggle('active', pageNum === currentPage); // Đánh dấu trang active
+      
+      // Gán sự kiện click để chuyển trang
       btn.onclick = () => {
-        currentPage = pageNum;
-        renderProductsTable();
+        console.log(`Chuyển đến trang ${pageNum}`);
+        currentPage = pageNum;                // Cập nhật trang hiện tại
+        renderProductsTable();                // Load lại dữ liệu
       };
     } else {
-      btn.style.display = "none";
+      // Ẩn nút này (không cần thiết)
+      btn.style.display = 'none';
     }
   });
-
-  // Cập nhật trạng thái nút điều hướng
-  document.getElementById("firstPage").disabled = currentPage === 1;
-  document.getElementById("prevPage").disabled = currentPage === 1;
-  document.getElementById("nextPage").disabled = currentPage === totalPages;
-  document.getElementById("lastPage").disabled = currentPage === totalPages;
-}
-
-// ========== FILTER FUNCTIONS ==========
-function applyProductFilters() {
-  filteredProducts = sampleProducts.filter((product) => {
-    // Lọc theo danh mục
-    if (categoryFilter.value && product.category !== categoryFilter.value) {
-      return false;
-    }
-
-    // Lọc theo thương hiệu
-    if (brandFilter.value && product.brand !== brandFilter.value) {
-      return false;
-    }
-
-    // Lọc theo trạng thái kho
-    if (stockFilter.value) {
-      const stockStatus = getStockStatus(product.stock, product.stockAlert);
-      if (stockStatus !== stockFilter.value) {
-        return false;
+  
+  // 2. CẬP NHẬT NÚT ĐIỀU HƯỚNG (First, Prev, Next, Last)
+  
+  // Lấy các nút điều hướng
+  const firstPageBtn = document.getElementById("firstPage");
+  const prevPageBtn = document.getElementById("prevPage");
+  const nextPageBtn = document.getElementById("nextPage");
+  const lastPageBtn = document.getElementById("lastPage");
+  
+  // Vô hiệu hóa nút "First" và "Prev" nếu đang ở trang 1
+  if (firstPageBtn) firstPageBtn.disabled = currentPage === 1;
+  if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
+  
+  // Vô hiệu hóa nút "Next" và "Last" nếu đang ở trang cuối
+  if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages;
+  if (lastPageBtn) lastPageBtn.disabled = currentPage === totalPages;
+  
+  // Gán sự kiện cho các nút điều hướng
+  if (firstPageBtn) {
+    firstPageBtn.onclick = () => {
+      if (currentPage > 1) {
+        currentPage = 1;
+        renderProductsTable();
       }
-    }
-
-    // Lọc theo giá
-    if (priceFilter.value) {
-      const price = product.price;
-      switch (priceFilter.value) {
-        case "low":
-          if (price >= 5000000) return false;
-          break;
-        case "medium":
-          if (price < 5000000 || price > 15000000) return false;
-          break;
-        case "high":
-          if (price < 15000000 || price > 30000000) return false;
-          break;
-        case "premium":
-          if (price < 30000000) return false;
-          break;
-      }
-    }
-
-    return true;
-  });
-
-  currentPage = 1;
-  renderProductsTable();
-}
-
-function clearAllFilters() {
-  categoryFilter.value = "";
-  brandFilter.value = "";
-  stockFilter.value = "";
-  priceFilter.value = "";
-  searchInput.value = "";
-  filteredProducts = [];
-  currentPage = 1;
-  renderProductsTable();
-  showToast("Thành công", "Đã xóa tất cả bộ lọc", "success");
-}
-
-// Chuẩn hóa payload gửi API từ form
-function buildProductPayloadFromForm() {
-  const brandValue = document.getElementById("productBrand").value;
-  const statusRadio = document.querySelector('input[name="productStatus"]:checked');
-
-  return {
-    product_name: document.getElementById("productName").value.trim(),
-    sku: document.getElementById("productSku").value.trim(),
-    category: document.getElementById("productCategory").value,
-    brand_id: brandValue ? Number(brandValue) || brandValue : null,
-    price: parseInt(document.getElementById("productPrice").value, 10),
-    cost: parseInt(document.getElementById("productCost").value, 10),
-    stock: parseInt(document.getElementById("productStock").value, 10),
-    stock_alert:
-      parseInt(document.getElementById("productStockAlert").value, 10) || 5,
-    status: statusRadio ? statusRadio.value : "active",
-    description: document.getElementById("productDescription").value.trim(),
-    image:
-      imagePreview.style.display === "block"
-        ? imagePreview.querySelector("img").src
-        : "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&h=400&fit=crop",
-  };
-}
-
-// ========== MODAL FUNCTIONS ==========
-function openProductModal(editMode = false, productData = null) {
-  if (editMode && productData) {
-    modalTitle.textContent = "Chỉnh Sửa Sản Phẩm";
-    isEditing = true;
-    currentProductId = productData.id;
-
-    // Điền dữ liệu vào form
-    document.getElementById("productName").value = productData.product_name;
-    document.getElementById("productSku").value = productData.sku;
-    document.getElementById("productCategory").value = productData.category;
-    document.getElementById("productBrand").value = productData.brand_id;
-    document.getElementById("productPrice").value = productData.price;
-    document.getElementById("productCost").value = productData.cost;
-    document.getElementById("productStock").value = productData.stock;
-    document.getElementById("productStockAlert").value = productData.stock_alert;
-    document.getElementById("productDescription").value =
-      productData.description;
-
-    // Đặt trạng thái
-    const statusRadio = document.querySelector(
-      `input[name="productStatus"][value="${productData.status}"]`
-    );
-    if (statusRadio) statusRadio.checked = true;
-
-    // Hiển thị ảnh preview
-    if (productData.image) {
-      imagePreview.style.display = "block";
-      imagePreview.querySelector("img").src = productData.image;
-    }
-  } else {
-    modalTitle.textContent = "Thêm Sản Phẩm Mới";
-    isEditing = false;
-    currentProductId = null;
-    productForm.reset();
-    imagePreview.style.display = "none";
+    };
   }
-
-  productModal.classList.add("active");
-  document.body.style.overflow = "hidden";
+  
+  if (prevPageBtn) {
+    prevPageBtn.onclick = () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderProductsTable();
+      }
+    };
+  }
+  
+  if (nextPageBtn) {
+    nextPageBtn.onclick = () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderProductsTable();
+      }
+    };
+  }
+  
+  if (lastPageBtn) {
+    lastPageBtn.onclick = () => {
+      if (currentPage < totalPages) {
+        currentPage = totalPages;
+        renderProductsTable();
+      }
+    };
+  }
 }
 
-function closeProductModalFunc() {
-  productModal.classList.remove("active");
-  document.body.style.overflow = "auto";
-  productForm.reset();
-  imagePreview.style.display = "none";
-  isEditing = false;
-  currentProductId = null;
-}
+// ========== PHẦN 7: HÀM LOAD THỐNG KÊ ==========
 
-async function saveProduct() {
+/**
+ * Lấy thống kê từ API và cập nhật lên giao diện
+ */
+async function loadStats() {
   try {
-    // Lấy dữ liệu từ form
-    const formData = buildProductPayloadFromForm();
+    console.log("📊 Đang tải thống kê...");
+    
+    // Gọi API lấy thống kê
+    const response = await productAPI.getStats();
+    
+    // Kiểm tra kết quả
+    if (response.success && response.data) {
+      const stats = response.data;
+      console.log("📊 Thống kê nhận được:", stats);
+      
+      // CẬP NHẬT 4 THẺ THỐNG KÊ TRÊN GIAO DIỆN
+      
+      // Thẻ 1: Tổng sản phẩm
+      const totalElement = document.querySelector('.stat-card:nth-child(1) .stat-number');
+      if (totalElement) totalElement.textContent = stats.total || 0;
+      
+      // Thẻ 2: Đang bán (Available)
+      const availableElement = document.querySelector('.stat-card:nth-child(2) .stat-number');
+      if (availableElement) availableElement.textContent = stats.available || 0;
+      
+      // Thẻ 3: Sắp hết hàng (Low stock)
+      const lowStockElement = document.querySelector('.stat-card:nth-child(3) .stat-number');
+      if (lowStockElement) lowStockElement.textContent = stats.low_stock || 0;
+      
+      // Thẻ 4: Hết hàng (Out of stock)
+      const outOfStockElement = document.querySelector('.stat-card:nth-child(4) .stat-number');
+      if (outOfStockElement) outOfStockElement.textContent = stats.out_of_stock || 0;
+      
+      console.log("✅ Đã cập nhật thống kê");
+      
+    } else {
+      console.warn("Không nhận được dữ liệu thống kê từ API");
+    }
+  } catch (error) {
+    console.error("❌ Lỗi khi tải thống kê:", error);
+  }
+}
 
-    // Validate dữ liệu
-    if (
-      !formData.product_name ||
-      !formData.sku ||
-      !formData.category ||
-      !formData.brand_id ||
-      !formData.price ||
-      !formData.cost ||
-      formData.stock === undefined
-    ) {
-      showToast("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc", "error");
+// ========== PHẦN 8: HÀM LOAD FILTER OPTIONS ==========
+
+/**
+ * Lấy danh sách thương hiệu và danh mục từ API để điền vào dropdown
+ */
+async function loadFilterOptions() {
+  try {
+    console.log("🔧 Đang tải filter options...");
+    
+    // 1. LẤY DANH SÁCH THƯƠNG HIỆU
+    const brandsResponse = await productAPI.getBrands();
+    if (brandsResponse.success && brandsResponse.data) {
+      updateBrandFilter(brandsResponse.data);
+    }
+    
+    // 2. LẤY DANH SÁCH DANH MỤC  
+    const categoriesResponse = await productAPI.getCategories();
+    if (categoriesResponse.success && categoriesResponse.data) {
+      updateCategoryFilter(categoriesResponse.data);
+    }
+    
+    console.log("✅ Đã tải filter options");
+    
+  } catch (error) {
+    console.error("❌ Lỗi khi tải filter options:", error);
+  }
+}
+
+/**
+ * Cập nhật dropdown thương hiệu với dữ liệu từ API
+ * @param {Array} brands - Mảng chứa các object thương hiệu
+ */
+function updateBrandFilter(brands) {
+  // Kiểm tra nếu dropdown tồn tại
+  if (!brandFilter) {
+    console.warn("Không tìm thấy dropdown brandFilter");
+    return;
+  }
+  
+  // Lưu option đầu tiên ("Tất cả thương hiệu")
+  const firstOption = brandFilter.options[0];
+  
+  // Xóa tất cả options cũ (giữ lại option đầu tiên nếu cần)
+  brandFilter.innerHTML = '';
+  
+  // Thêm lại option "Tất cả"
+  brandFilter.appendChild(firstOption);
+  
+  // Thêm từng thương hiệu vào dropdown
+  brands.forEach(brand => {
+    const option = document.createElement('option');
+    
+    // Giả sử API trả về object có trường id và brand_name
+    option.value = brand.id || brand.value;          // Giá trị gửi lên API
+    option.textContent = brand.brand_name || brand.name || brand.label; // Tên hiển thị
+    
+    brandFilter.appendChild(option);
+  });
+  
+  console.log(`✅ Đã thêm ${brands.length} thương hiệu vào filter`);
+}
+
+/**
+ * Cập nhật dropdown danh mục với dữ liệu từ API
+ * @param {Array} categories - Mảng chứa các danh mục
+ */
+function updateCategoryFilter(categories) {
+  if (!categoryFilter) {
+    console.warn("Không tìm thấy dropdown categoryFilter");
+    return;
+  }
+  
+  const firstOption = categoryFilter.options[0];
+  categoryFilter.innerHTML = '';
+  categoryFilter.appendChild(firstOption);
+  
+  categories.forEach(category => {
+    const option = document.createElement('option');
+    
+    // Giả sử categories là mảng string hoặc object
+    const categoryValue = typeof category === 'object' ? category.value || category.id : category;
+    const categoryLabel = typeof category === 'object' ? category.label || category.name : getCategoryText(category);
+    
+    option.value = categoryValue;
+    option.textContent = categoryLabel;
+    
+    categoryFilter.appendChild(option);
+  });
+  
+  console.log(`✅ Đã thêm ${categories.length} danh mục vào filter`);
+}
+
+// ========== PHẦN 9: HÀM XỬ LÝ SỰ KIỆN ==========
+
+/**
+ * Xử lý sự kiện tìm kiếm real-time
+ */
+function setupSearchEvent() {
+  if (!searchInput) return;
+  
+  // Biến để debounce (tránh gọi API liên tục khi gõ)
+  let searchTimeout;
+  
+  // Lắng nghe sự kiện input (gõ phím)
+  searchInput.addEventListener("input", function(e) {
+    // Lấy giá trị từ ô input, xóa khoảng trắng thừa
+    const searchTerm = e.target.value.trim();
+    
+    console.log(`🔍 Đang tìm kiếm: "${searchTerm}"`);
+    
+    // Xóa timeout cũ (nếu có)
+    clearTimeout(searchTimeout);
+    
+    // Nếu ô search trống, load lại dữ liệu gốc
+    if (searchTerm === "") {
+      currentPage = 1;
+      renderProductsTable();
       return;
     }
+    
+    // Đợi 500ms sau khi ngừng gõ mới gọi API (debounce)
+    searchTimeout = setTimeout(() => {
+      currentPage = 1; // Reset về trang 1 khi tìm kiếm
+      renderProductsTable(); // Gọi API với từ khóa tìm kiếm
+    }, 500);
+  });
+}
 
-    // Hiệu ứng loading
-    saveProductBtn.innerHTML =
-      '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
-    saveProductBtn.disabled = true;
-
-    let response;
-
-    if (isEditing) {
-      // Cập nhật sản phẩm qua API
-      response = await apiService.updateProduct(currentProductId, formData);
-    } else {
-      // Thêm sản phẩm mới qua API
-      response = await apiService.createProduct(formData);
-    }
-
-    if (response.success) {
-      // Cập nhật UI
+/**
+ * Xử lý sự kiện cho các nút filter
+ */
+function setupFilterEvents() {
+  // Khi category thay đổi
+  if (categoryFilter) {
+    categoryFilter.addEventListener("change", function() {
+      console.log(`🎯 Filter category: ${this.value}`);
+      currentPage = 1; // Reset về trang 1
+      renderProductsTable(); // Load lại với filter mới
+    });
+  }
+  
+  // Khi brand thay đổi
+  if (brandFilter) {
+    brandFilter.addEventListener("change", function() {
+      console.log(`🏷️ Filter brand: ${this.value}`);
       currentPage = 1;
-      await renderProductsTable();
-      closeProductModalFunc();
-
-      // Hiển thị thông báo
-      showToast(
-        "Thành công",
-        isEditing
-          ? "Đã cập nhật sản phẩm thành công"
-          : "Đã thêm sản phẩm mới thành công",
-        "success"
-      );
-    } else {
-      showToast("Lỗi", response.message || "Có lỗi xảy ra khi lưu sản phẩm", "error");
-    }
-  } catch (error) {
-    console.error("Error saving product:", error);
-    showToast(
-      "Lỗi",
-      "Không thể kết nối API. Vui lòng kiểm tra máy chủ.",
-      "error"
-    );
-  } finally {
-    // Reset nút
-    saveProductBtn.innerHTML = '<i class="fas fa-save"></i> Lưu Sản Phẩm';
-    saveProductBtn.disabled = false;
+      renderProductsTable();
+    });
+  }
+  
+  // Khi stock status thay đổi
+  if (stockFilter) {
+    stockFilter.addEventListener("change", function() {
+      console.log(`📦 Filter stock: ${this.value}`);
+      currentPage = 1;
+      renderProductsTable();
+    });
+  }
+  
+  // Khi price range thay đổi
+  if (priceFilter) {
+    priceFilter.addEventListener("change", function() {
+      console.log(`💰 Filter price: ${this.value}`);
+      currentPage = 1;
+      renderProductsTable();
+    });
+  }
+  
+  // Nút "Áp dụng filter" (nếu có)
+  if (applyFilters) {
+    applyFilters.addEventListener("click", function() {
+      console.log("✅ Áp dụng tất cả filter");
+      currentPage = 1;
+      renderProductsTable();
+      showToast("Thành công", "Đã áp dụng bộ lọc", "success");
+    });
+  }
+  
+  // Nút "Xóa filter" (nếu có)
+  if (clearFilters) {
+    clearFilters.addEventListener("click", function() {
+      console.log("🗑️ Xóa tất cả filter");
+      clearAllFilters();
+    });
   }
 }
 
-function showDeleteModal(productId, productName) {
-  productToDelete = productId;
-  deleteProductName.textContent = productName;
-  deleteModal.classList.add("active");
-  document.body.style.overflow = "hidden";
+/**
+ * Xử lý sự kiện phân trang
+ */
+function setupPaginationEvents() {
+  // Khi thay đổi số dòng mỗi trang
+  if (rowsPerPageSelect) {
+    rowsPerPageSelect.addEventListener("change", function(e) {
+      // Cập nhật số dòng mỗi trang
+      rowsPerPage = parseInt(e.target.value);
+      currentPage = 1; // Reset về trang 1
+      
+      console.log(`📄 Thay đổi rows per page: ${rowsPerPage}`);
+      
+      // Load lại dữ liệu
+      renderProductsTable();
+    });
+  }
+  
+  // Nút "Làm mới" bảng
+  const refreshTable = document.getElementById("refreshTable");
+  if (refreshTable) {
+    refreshTable.addEventListener("click", function() {
+      console.log("🔄 Làm mới bảng");
+      currentPage = 1;
+      renderProductsTable();
+      showToast("Thành công", "Đã làm mới danh sách sản phẩm", "success");
+    });
+  }
 }
 
-function closeDeleteModalFunc() {
-  deleteModal.classList.remove("active");
-  document.body.style.overflow = "auto";
-  productToDelete = null;
-}
+// ========== PHẦN 10: HÀM XEM VÀ CHỈNH SỬA SẢN PHẨM ==========
 
-async function deleteProduct() {
-  if (!productToDelete) return;
-
+/**
+ * Xem chi tiết sản phẩm
+ * @param {number} productId - ID sản phẩm
+ */
+async function viewProduct(productId) {
   try {
-    // Hiệu ứng loading
-    confirmDeleteBtn.innerHTML =
-      '<i class="fas fa-spinner fa-spin"></i> Đang xóa...';
-    confirmDeleteBtn.disabled = true;
-
-    // Gửi API xóa
-    const response = await apiService.deleteProduct(productToDelete);
-
-    if (response.success) {
-      // Cập nhật UI
-      currentPage = 1;
-      await renderProductsTable();
-      closeDeleteModalFunc();
-
-      // Hiển thị thông báo
-      showToast("Thành công", "Đã xóa sản phẩm thành công", "success");
+    console.log(`👁️ Đang xem sản phẩm ID: ${productId}`);
+    
+    // Gọi API lấy chi tiết sản phẩm
+    const response = await productAPI.getProductById(productId);
+    
+    if (response.success && response.data) {
+      const product = response.data;
+      
+      // Hiển thị thông tin trong alert (có thể thay bằng modal đẹp hơn)
+      alert(`
+        📱 THÔNG TIN SẢN PHẨM
+        ---------------------
+        Tên: ${product.product_name}
+        SKU: ${product.sku || 'N/A'}
+        Danh mục: ${getCategoryText(product.category)}
+        Thương hiệu: ${product.brand || 'Không xác định'}
+        Giá: ${formatPrice(product.price)}₫
+        Tồn kho: ${product.stock}
+        Trạng thái: ${getStockStatusText(getStockStatus(product.stock))}
+        ${product.description ? `Mô tả: ${product.description}` : ''}
+      `);
+      
     } else {
-      showToast("Lỗi", response.message || "Có lỗi xảy ra khi xóa sản phẩm", "error");
+      showToast("Lỗi", "Không thể tải thông tin sản phẩm", "error");
     }
   } catch (error) {
-    console.error("Error deleting product:", error);
-    showToast(
-      "Lỗi",
-      "Không thể kết nối API. Vui lòng kiểm tra máy chủ.",
-      "error"
-    );
-  } finally {
-    // Reset nút
-    confirmDeleteBtn.innerHTML = '<i class="fas fa-trash"></i> Xóa Sản Phẩm';
-    confirmDeleteBtn.disabled = false;
+    console.error("❌ Lỗi khi xem sản phẩm:", error);
+    showToast("Lỗi", "Không thể tải thông tin sản phẩm", "error");
   }
 }
 
-function viewProduct(productId) {
-  const product = filteredProducts.find((p) => p.id === productId);
-  if (product) {
-    showToast(
-      "Thông tin sản phẩm",
-      `${product.product_name} - Giá: ${formatPrice(product.price)}₫ - Tồn kho: ${
-        product.stock
-      }`,
-      "success"
-    );
+/**
+ * Mở modal chỉnh sửa sản phẩm
+ * @param {number} productId - ID sản phẩm
+ */
+async function editProduct(productId) {
+  try {
+    console.log(`✏️ Đang mở chỉnh sửa sản phẩm ID: ${productId}`);
+    
+    // Gọi API lấy thông tin sản phẩm
+    const response = await productAPI.getProductById(productId);
+    
+    if (response.success && response.data) {
+      // Đánh dấu đang ở chế độ chỉnh sửa
+      isEditing = true;
+      currentProductId = productId;
+      
+      // Mở modal và điền dữ liệu (hàm này bạn cần tự implement)
+      openEditModal(response.data);
+      
+    } else {
+      showToast("Lỗi", "Không thể tải thông tin sản phẩm", "error");
+    }
+  } catch (error) {
+    console.error("❌ Lỗi khi mở chỉnh sửa:", error);
+    showToast("Lỗi", "Không thể tải thông tin sản phẩm", "error");
   }
 }
 
-function editProduct(productId) {
-  const product = filteredProducts.find((p) => p.id === productId);
-  if (product) {
-    openProductModal(true, product);
+/**
+ * Hiển thị modal xác nhận xóa
+ * @param {number} productId - ID sản phẩm cần xóa
+ * @param {string} productName - Tên sản phẩm (để hiển thị)
+ */
+function showDeleteModal(productId, productName) {
+  console.log(`🗑️ Mở modal xóa sản phẩm: ${productName} (ID: ${productId})`);
+  
+  // Lưu ID sản phẩm cần xóa
+  productToDelete = productId;
+  
+  // Hiển thị tên sản phẩm trong modal
+  const deleteProductName = document.getElementById("deleteProductName");
+  if (deleteProductName) {
+    deleteProductName.textContent = productName;
+  }
+  
+  // Hiển thị modal (thêm class 'active')
+  const deleteModal = document.getElementById("deleteModal");
+  if (deleteModal) {
+    deleteModal.classList.add("active");
   }
 }
 
-// ========== TOAST NOTIFICATION ==========
+/**
+ * Xóa sản phẩm sau khi xác nhận
+ */
+async function deleteProduct() {
+  if (!productToDelete) {
+    console.warn("Không có sản phẩm nào để xóa");
+    return;
+  }
+  
+  try {
+    console.log(`🗑️ Đang xóa sản phẩm ID: ${productToDelete}`);
+    
+    // Gọi API xóa sản phẩm
+    const response = await productAPI.deleteProduct(productToDelete);
+    
+    if (response.success) {
+      // Đóng modal
+      closeDeleteModal();
+      
+      // Load lại danh sách sản phẩm
+      currentPage = 1;
+      await renderProductsTable();
+      
+      // Hiển thị thông báo thành công
+      showToast("Thành công", "Đã xóa sản phẩm thành công", "success");
+      
+    } else {
+      showToast("Lỗi", response.message || "Không thể xóa sản phẩm", "error");
+    }
+  } catch (error) {
+    console.error("❌ Lỗi khi xóa sản phẩm:", error);
+    showToast("Lỗi", "Không thể xóa sản phẩm", "error");
+  }
+}
+
+/**
+ * Đóng modal xóa
+ */
+function closeDeleteModal() {
+  const deleteModal = document.getElementById("deleteModal");
+  if (deleteModal) {
+    deleteModal.classList.remove("active");
+  }
+  productToDelete = null; // Reset ID sản phẩm cần xóa
+}
+
+// ========== PHẦN 11: HÀM HIỂN THỊ TRẠNG THÁI ==========
+
+/**
+ * Hiển thị trạng thái loading khi đang tải dữ liệu
+ */
+function showLoadingState() {
+  if (!productsTableBody) return;
+  
+  productsTableBody.innerHTML = `
+    <tr>
+      <td colspan="8">
+        <div style="text-align: center; padding: 60px 20px;">
+          <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #4361ee; margin-bottom: 20px;"></i>
+          <h3 style="margin-bottom: 12px; color: #495057;">Đang tải dữ liệu...</h3>
+          <p style="color: #6c757d;">Vui lòng chờ trong giây lát</p>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+/**
+ * Hiển thị thông báo lỗi khi không tải được dữ liệu
+ * @param {string} errorMessage - Thông báo lỗi
+ */
+function showErrorState(errorMessage) {
+  if (!productsTableBody) return;
+  
+  productsTableBody.innerHTML = `
+    <tr>
+      <td colspan="8">
+        <div style="text-align: center; padding: 60px 20px;">
+          <i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #f72585; margin-bottom: 20px;"></i>
+          <h3 style="margin-bottom: 12px; color: #495057;">Đã xảy ra lỗi</h3>
+          <p style="color: #6c757d; margin-bottom: 20px;">${errorMessage}</p>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="btn btn-primary" onclick="renderProductsTable()">
+              <i class="fas fa-redo"></i> Thử lại
+            </button>
+            <button class="btn btn-secondary" onclick="clearAllFilters()">
+              <i class="fas fa-times"></i> Xóa bộ lọc
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+/**
+ * Hiển thị thông báo toast
+ * @param {string} title - Tiêu đề toast
+ * @param {string} message - Nội dung toast
+ * @param {string} type - Loại toast (success, error, warning)
+ */
 function showToast(title, message, type = "success") {
+  // Tìm các phần tử toast trong DOM
+  const toast = document.getElementById("toast");
+  const toastTitle = document.getElementById("toastTitle");
+  const toastMessage = document.getElementById("toastMessage");
+  const toastIcon = document.getElementById("toastIcon");
+  
+  if (!toast || !toastTitle || !toastMessage || !toastIcon) {
+    console.warn("Không tìm thấy phần tử toast trong DOM");
+    return;
+  }
+  
+  // Cập nhật nội dung
   toastTitle.textContent = title;
   toastMessage.textContent = message;
-
-  // Đổi màu và icon theo type
+  
+  // Cập nhật icon và màu sắc theo type
   const icon = toastIcon.querySelector("i");
-  switch (type) {
-    case "success":
-      toastIcon.className = "toast-icon success";
-      icon.className = "fas fa-check";
-      break;
-    case "warning":
-      toastIcon.className = "toast-icon warning";
-      icon.className = "fas fa-exclamation-triangle";
-      break;
-    case "error":
-      toastIcon.className = "toast-icon error";
-      icon.className = "fas fa-times";
-      break;
+  if (icon) {
+    switch (type) {
+      case "success":
+        toastIcon.className = "toast-icon success";
+        icon.className = "fas fa-check-circle";
+        break;
+      case "error":
+        toastIcon.className = "toast-icon error";
+        icon.className = "fas fa-times-circle";
+        break;
+      case "warning":
+        toastIcon.className = "toast-icon warning";
+        icon.className = "fas fa-exclamation-triangle";
+        break;
+      default:
+        toastIcon.className = "toast-icon success";
+        icon.className = "fas fa-info-circle";
+    }
   }
-
+  
+  // Hiển thị toast
   toast.classList.add("show");
-
-  // Tự động đóng sau 5 giây
+  
+  // Tự động ẩn sau 5 giây
   setTimeout(() => {
     toast.classList.remove("show");
   }, 5000);
 }
 
-// ========== EVENT LISTENERS ==========
-// Modal events
-addProductBtn.addEventListener("click", () => openProductModal());
-closeModal.addEventListener("click", closeProductModalFunc);
-closeDeleteModal.addEventListener("click", closeDeleteModalFunc);
-cancelBtn.addEventListener("click", closeProductModalFunc);
-cancelDeleteBtn.addEventListener("click", closeDeleteModalFunc);
-saveProductBtn.addEventListener("click", saveProduct);
-confirmDeleteBtn.addEventListener("click", deleteProduct);
+// ========== PHẦN 12: HÀM TIỆN ÍCH ==========
 
-// Filter events
-applyFilters.addEventListener("click", applyProductFilters);
-clearFilters.addEventListener("click", () => {
-  categoryFilter.value = "";
-  brandFilter.value = "";
-  stockFilter.value = "";
-  priceFilter.value = "";
-  applyProductFilters();
-  showToast("Thành công", "Đã xóa bộ lọc", "success");
-});
-
-resetFilters.addEventListener("click", clearAllFilters);
-
-// Search event
-searchInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter" && searchInput.value.trim()) {
-    const searchTerm = searchInput.value.toLowerCase();
-    filteredProducts = sampleProducts.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm) ||
-        product.sku.toLowerCase().includes(searchTerm) ||
-        product.description.toLowerCase().includes(searchTerm)
-    );
-    currentPage = 1;
-    renderProductsTable();
-    showToast(
-      "Tìm kiếm",
-      `Tìm thấy ${filteredProducts.length} sản phẩm phù hợp`,
-      "success"
-    );
-  }
-});
-
-// Pagination events
-rowsPerPageSelect.addEventListener("change", (e) => {
-  rowsPerPage = parseInt(e.target.value);
+/**
+ * Xóa tất cả filter và reset về trạng thái ban đầu
+ */
+function clearAllFilters() {
+  console.log("🧹 Đang xóa tất cả filter...");
+  
+  // Reset giá trị các ô filter
+  if (categoryFilter) categoryFilter.value = "";
+  if (brandFilter) brandFilter.value = "";
+  if (stockFilter) stockFilter.value = "";
+  if (priceFilter) priceFilter.value = "";
+  if (searchInput) searchInput.value = "";
+  
+  // Reset về trang 1
   currentPage = 1;
+  
+  // Load lại dữ liệu
   renderProductsTable();
-});
+  
+  // Hiển thị thông báo
+  showToast("Thành công", "Đã xóa tất cả bộ lọc", "success");
+}
 
-refreshTable.addEventListener("click", () => {
-  filteredProducts = [...sampleProducts];
-  currentPage = 1;
-  renderProductsTable();
-  showToast("Thành công", "Đã làm mới danh sách sản phẩm", "success");
-});
+// ========== PHẦN 13: KHỞI TẠO ỨNG DỤNG ==========
 
-exportBtn.addEventListener("click", () => {
-  showToast("Xuất file", "Đang xuất dữ liệu ra file Excel...", "success");
-});
-
-// Select all checkbox
-selectAll.addEventListener("change", (e) => {
-  const checkboxes = document.querySelectorAll(".product-checkbox");
-  checkboxes.forEach((checkbox) => {
-    checkbox.checked = e.target.checked;
-  });
-});
-
-// Pagination button events
-document.getElementById("firstPage").addEventListener("click", () => {
-  if (currentPage > 1) {
-    currentPage = 1;
-    renderProductsTable();
-  }
-});
-
-document.getElementById("prevPage").addEventListener("click", () => {
-  if (currentPage > 1) {
-    currentPage--;
-    renderProductsTable();
-  }
-});
-
-document.getElementById("nextPage").addEventListener("click", () => {
-  const totalPages = Math.ceil(filteredProducts.length / rowsPerPage);
-  if (currentPage < totalPages) {
-    currentPage++;
-    renderProductsTable();
-  }
-});
-
-document.getElementById("lastPage").addEventListener("click", () => {
-  const totalPages = Math.ceil(filteredProducts.length / rowsPerPage);
-  if (currentPage < totalPages) {
-    currentPage = totalPages;
-    renderProductsTable();
-  }
-});
-
-// Image upload simulation
-imageUpload.addEventListener("click", () => {
-  // Trong thực tế, đây sẽ là input file thực
-  const fakeImageUrl =
-    "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&h=400&fit=crop";
-  imagePreview.style.display = "block";
-  imagePreview.querySelector("img").src = fakeImageUrl;
-  showToast("Tải ảnh", "Đã tải ảnh lên thành công", "success");
-});
-
-// Close toast
-closeToast.addEventListener("click", () => {
-  toast.classList.remove("show");
-});
-
-// Đóng modal khi click bên ngoài
-window.addEventListener("click", (e) => {
-  if (e.target === productModal) closeProductModalFunc();
-  if (e.target === deleteModal) closeDeleteModalFunc();
-});
-
-// ========== KIỂM TRA KẾT NỐI API ==========
-async function checkAPIConnection() {
+/**
+ * Hàm khởi tạo - chạy khi trang web được tải xong
+ */
+async function initializeApp() {
+  console.log("🚀 Đang khởi tạo ứng dụng Quản lý Sản phẩm...");
+  
   try {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+    // 1. Kiểm tra kết nối API
+    await testAPIConnection();
+    
+    // 2. Tải thống kê
+    await loadStats();
+    
+    // 3. Tải filter options (brands, categories)
+    await loadFilterOptions();
+    
+    // 4. Tải danh sách sản phẩm đầu tiên
+    await renderProductsTable();
+    
+    // 5. Thiết lập các sự kiện
+    setupSearchEvent();
+    setupFilterEvents();
+    setupPaginationEvents();
+    
+    // 6. Thiết lập sự kiện cho nút "Thêm sản phẩm"
+    if (addProductBtn) {
+      addProductBtn.addEventListener("click", function() {
+        console.log("➕ Mở modal thêm sản phẩm");
+        // Reset cờ chỉnh sửa
+        isEditing = false;
+        currentProductId = null;
+        // Mở modal (cần implement hàm openAddModal)
+        // openAddModal();
+      });
+    }
+    
+    // 7. Thiết lập sự kiện cho nút xác nhận xóa
+    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener("click", deleteProduct);
+    }
+    
+    // 8. Thiết lập sự kiện đóng modal xóa
+    const closeDeleteModalBtn = document.getElementById("closeDeleteModal");
+    if (closeDeleteModalBtn) {
+      closeDeleteModalBtn.addEventListener("click", closeDeleteModal);
+    }
+    
+    // 9. Thiết lập sự kiện đóng modal xóa khi click bên ngoài
+    window.addEventListener("click", function(event) {
+      const deleteModal = document.getElementById("deleteModal");
+      if (deleteModal && event.target === deleteModal) {
+        closeDeleteModal();
       }
     });
     
+    console.log("✅ Ứng dụng đã được khởi tạo thành công!");
+    showToast("Thành công", "Ứng dụng đã sẵn sàng", "success");
+    
+  } catch (error) {
+    console.error("❌ Lỗi khi khởi tạo ứng dụng:", error);
+    showToast("Lỗi", "Không thể khởi tạo ứng dụng", "error");
+  }
+}
+
+/**
+ * Kiểm tra kết nối đến API backend
+ */
+async function testAPIConnection() {
+  try {
+    console.log("🔌 Đang kiểm tra kết nối API...");
+    
+    // Thử gọi API đơn giản (endpoint gốc hoặc /products)
+    const response = await fetch(`${API_BASE_URL}/products`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+    
     if (response.ok) {
-      console.log('✅ API kết nối thành công!');
-      showToast('Thành công', 'API kết nối thành công', 'success');
+      console.log("✅ Kết nối API thành công!");
       return true;
     } else {
-      console.warn('⚠️ API trả về lỗi:', response.status);
-      showToast('Cảnh báo', `API trả về lỗi ${response.status}`, 'warning');
+      console.warn(`⚠️ API trả về status: ${response.status}`);
+      showToast("Cảnh báo", `API trả về lỗi ${response.status}`, "warning");
       return false;
     }
   } catch (error) {
-    console.error('❌ Không thể kết nối API:', error.message);
+    console.error("❌ Không thể kết nối đến API:", error.message);
+    
+    // Hiển thị thông báo chi tiết
     showToast(
-      'Lỗi',
-      `Không thể kết nối API tại ${API_BASE_URL}. Vui lòng kiểm tra máy chủ backend.`,
-      'error'
+      "Lỗi kết nối", 
+      `Không thể kết nối đến ${API_BASE_URL}. Kiểm tra:\n1. Backend có đang chạy?\n2. Đúng cổng 6346?\n3. CORS đã cấu hình?`, 
+      "error"
     );
+    
     return false;
   }
 }
 
-// ========== KHỞI TẠO ==========
-document.addEventListener("DOMContentLoaded", async () => {
-  // Kiểm tra kết nối API
-  await checkAPIConnection();
+// ========== PHẦN 14: CHẠY ỨNG DỤNG ==========
 
-  // Render bảng sản phẩm ban đầu
-  await renderProductsTable();
-
-  // Thêm hiệu ứng load cho các stat cards
+// Đợi cho đến khi toàn bộ DOM được tải xong
+document.addEventListener("DOMContentLoaded", function() {
+  console.log("📄 DOM đã được tải xong, bắt đầu khởi tạo...");
+  
+  // Chạy hàm khởi tạo
+  initializeApp();
+  
+  // Thêm hiệu ứng cho các thẻ thống kê
   document.querySelectorAll(".stat-card").forEach((card, index) => {
     card.style.opacity = "0";
     card.style.transform = "translateY(20px)";
-
+    
+    // Hiệu ứng xuất hiện lần lượt
     setTimeout(() => {
       card.style.transition = "opacity 0.5s ease, transform 0.5s ease";
       card.style.opacity = "1";
       card.style.transform = "translateY(0)";
-    }, index * 100);
+    }, index * 100); // Mỗi card delay thêm 100ms
   });
 });
+
+// Xuất các hàm cần thiết ra global scope để có thể gọi từ HTML
+window.viewProduct = viewProduct;
+window.editProduct = editProduct;
+window.showDeleteModal = showDeleteModal;
+window.clearAllFilters = clearAllFilters;
+window.renderProductsTable = renderProductsTable;
