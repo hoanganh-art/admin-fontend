@@ -1,234 +1,53 @@
 // ========== DỮ LIỆU MẪU ==========
-const sampleProducts = [
-  {
-    id: 1,
-    name: "iPhone 15 Pro 128GB",
-    sku: "IP15P-128-BLK",
-    category: "smartphone",
-    brand: "apple",
-    price: 25490000,
-    cost: 22000000,
-    stock: 45,
-    stockAlert: 5,
-    status: "active",
-    description:
-      "iPhone 15 Pro với chip A17 Pro, camera 48MP, màn hình Super Retina XDR.",
-    image:
-      "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=400&fit=crop",
-  },
-  {
-    id: 2,
-    name: "Samsung Galaxy S23 Ultra",
-    sku: "SGSU-512-GRY",
-    category: "smartphone",
-    brand: "samsung",
-    price: 28990000,
-    cost: 25000000,
-    stock: 32,
-    stockAlert: 5,
-    status: "active",
-    description: "Galaxy S23 Ultra với bút S-Pen, camera 200MP, pin 5000mAh.",
-    image:
-      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400&h=400&fit=crop",
-  },
-  {
-    id: 3,
-    name: "Xiaomi 13 Pro",
-    sku: "XM13P-256-BLK",
-    category: "smartphone",
-    brand: "xiaomi",
-    price: 18990000,
-    cost: 16000000,
-    stock: 28,
-    stockAlert: 5,
-    status: "active",
-    description: "Xiaomi 13 Pro với camera Leica, chip Snapdragon 8 Gen 2.",
-    image:
-      "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w-400&h=400&fit=crop",
-  },
-  {
-    id: 4,
-    name: "Apple Watch Series 9",
-    sku: "AWS9-45-BLK",
-    category: "watch",
-    brand: "apple",
-    price: 11990000,
-    cost: 10000000,
-    stock: 3,
-    stockAlert: 5,
-    status: "low-stock",
-    description: "Apple Watch Series 9 với chip S9, màn hình Retina luôn bật.",
-    image:
-      "https://images.unsplash.com/photo-1434493650001-5d43a6fea0a2?w=400&h=400&fit=crop",
-  },
-  {
-    id: 5,
-    name: "Samsung Galaxy Tab S9",
-    sku: "SGTS9-256-SLV",
-    category: "tablet",
-    brand: "samsung",
-    price: 21990000,
-    cost: 18500000,
-    stock: 15,
-    stockAlert: 5,
-    status: "active",
-    description: "Galaxy Tab S9 với S-Pen, màn hình Dynamic AMOLED 2X.",
-    image:
-      "https://images.unsplash.com/photo-1546054450-4699c0fa43ea?w=400&h=400&fit=crop",
-  },
-  {
-    id: 6,
-    name: "AirPods Pro 2",
-    sku: "APP2-WHT",
-    category: "accessory",
-    brand: "apple",
-    price: 6490000,
-    cost: 5200000,
-    stock: 0,
-    stockAlert: 5,
-    status: "out-of-stock",
-    description:
-      "AirPods Pro thế hệ 2 với công nghệ Active Noise Cancellation.",
-    image:
-      "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop",
-  },
-  {
-    id: 7,
-    name: "Oppo Find X6 Pro",
-    sku: "OFX6P-512-BLK",
-    category: "smartphone",
-    brand: "oppo",
-    price: 22990000,
-    cost: 19500000,
-    stock: 18,
-    stockAlert: 5,
-    status: "active",
-    description:
-      "Oppo Find X6 Pro với camera Hasselblad, chip Snapdragon 8 Gen 2.",
-    image:
-      "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&h=400&fit=crop",
-  },
-  {
-    id: 8,
-    name: "Xiaomi Smart Band 8",
-    sku: "XMSB8-BLK",
-    category: "watch",
-    brand: "xiaomi",
-    price: 1290000,
-    cost: 950000,
-    stock: 56,
-    stockAlert: 5,
-    status: "active",
-    description:
-      "Xiaomi Smart Band 8 với màn hình AMOLED 1.62 inch, theo dõi sức khỏe.",
-    image:
-      "https://images.unsplash.com/photo-1523398002811-999ca8dec234?w=400&h=400&fit=crop",
-  },
-  {
-    id: 9,
-    name: "Vivo X90 Pro",
-    sku: "VX90P-256-BLK",
-    category: "smartphone",
-    brand: "vivo",
-    price: 19990000,
-    cost: 17000000,
-    stock: 22,
-    stockAlert: 5,
-    status: "active",
-    description: "Vivo X90 Pro với camera Zeiss, chip MediaTek Dimensity 9200.",
-    image:
-      "https://images.unsplash.com/photo-1598327105854-c8674faddf74?w=400&h=400&fit=crop",
-  },
-  {
-    id: 10,
-    name: "Samsung Galaxy Buds2 Pro",
-    sku: "SGB2P-WHT",
-    category: "accessory",
-    brand: "samsung",
-    price: 3990000,
-    cost: 3200000,
-    stock: 42,
-    stockAlert: 5,
-    status: "active",
-    description: "Galaxy Buds2 Pro với công nghệ chống ồn chủ động 360°.",
-    image:
-      "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop",
-  },
-  {
-    id: 11,
-    name: "iPad Pro 12.9 M2",
-    sku: "IPDP-1TB-GRY",
-    category: "tablet",
-    brand: "apple",
-    price: 38990000,
-    cost: 34000000,
-    stock: 8,
-    stockAlert: 5,
-    status: "active",
-    description: "iPad Pro 12.9 inch với chip M2, màn hình Liquid Retina XDR.",
-    image:
-      "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&h=400&fit=crop",
-  },
-  {
-    id: 12,
-    name: "Realme GT 5",
-    sku: "RGT5-256-BLK",
-    category: "smartphone",
-    brand: "realme",
-    price: 16990000,
-    cost: 14500000,
-    stock: 2,
-    stockAlert: 5,
-    status: "low-stock",
-    description: "Realme GT 5 với chip Snapdragon 8 Gen 2, sạc nhanh 240W.",
-    image:
-      "https://images.unsplash.com/photo-1596558450265-85d6bcc0db8c?w=400&h=400&fit=crop",
-  },
-];
+
 
 // ========== KHỞI TẠO BIẾN ==========
-let currentPage = 1;
-let rowsPerPage = 12;
-let filteredProducts = [...sampleProducts];
-let productToDelete = null;
-let isEditing = false;
-let currentProductId = null;
+let currentPage = 1; // Trang hiện tại
+let rowsPerPage = 12; // Số dòng trên mỗi trang
+let filteredProducts = []; // Sản phẩm sau khi lọc
+let productToDelete = null; // ID sản phẩm cần xóa
+let isEditing = false; // Chế độ chỉnh sửa
+let currentProductId = null; // ID sản phẩm hiện tại đang chỉnh sửa
+
+// Khởi tạo API Service (đã có trong products_API.js)
+const apiService = new ProductsAPI(API_BASE_URL);
+
+//lấy các phần tử HTML
 
 // DOM Elements
-const toggleSidebar = document.getElementById("toggleSidebar");
-const addProductBtn = document.getElementById("addProductBtn");
-const productModal = document.getElementById("productModal");
-const deleteModal = document.getElementById("deleteModal");
-const closeModal = document.getElementById("closeModal");
-const closeDeleteModal = document.getElementById("closeDeleteModal");
-const cancelBtn = document.getElementById("cancelBtn");
-const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
-const saveProductBtn = document.getElementById("saveProductBtn");
-const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
-const productsTableBody = document.getElementById("productsTableBody");
-const selectAll = document.getElementById("selectAll");
-const categoryFilter = document.getElementById("categoryFilter");
-const brandFilter = document.getElementById("brandFilter");
-const stockFilter = document.getElementById("stockFilter");
-const priceFilter = document.getElementById("priceFilter");
-const applyFilters = document.getElementById("applyFilters");
-const clearFilters = document.getElementById("clearFilters");
-const resetFilters = document.getElementById("resetFilters");
-const rowsPerPageSelect = document.getElementById("rowsPerPage");
-const refreshTable = document.getElementById("refreshTable");
-const exportBtn = document.getElementById("exportBtn");
-const searchInput = document.querySelector(".search-box input");
-const modalTitle = document.getElementById("modalTitle");
-const deleteProductName = document.getElementById("deleteProductName");
-const productForm = document.getElementById("productForm");
-const imageUpload = document.getElementById("imageUpload");
-const imagePreview = document.getElementById("imagePreview");
-const toast = document.getElementById("toast");
-const toastTitle = document.getElementById("toastTitle");
-const toastMessage = document.getElementById("toastMessage");
-const toastIcon = document.getElementById("toastIcon");
-const closeToast = document.getElementById("closeToast");
-
+const toggleSidebar = document.getElementById("toggleSidebar"); // Nút thu gọn sidebar
+const addProductBtn = document.getElementById("addProductBtn"); // Nút thêm sản phẩm mới
+const productModal = document.getElementById("productModal"); // Modal thêm/chỉnh sửa sản phẩm
+const deleteModal = document.getElementById("deleteModal"); // Modal xác nhận xóa sản phẩm
+const closeModal = document.getElementById("closeModal"); // Nút đóng modal thêm/chỉnh sửa sản phẩm
+const closeDeleteModal = document.getElementById("closeDeleteModal"); // Nút đóng modal xóa sản phẩm
+const cancelBtn = document.getElementById("cancelBtn"); // Nút hủy trong modal thêm/chỉnh sửa sản phẩm
+const cancelDeleteBtn = document.getElementById("cancelDeleteBtn"); // Nút hủy trong modal xóa sản phẩm
+const saveProductBtn = document.getElementById("saveProductBtn"); // Nút lưu sản phẩm trong modal
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn"); // Nút xác nhận xóa sản phẩm trong modal
+const productsTableBody = document.getElementById("productsTableBody"); // Thân bảng sản phẩm
+const selectAll = document.getElementById("selectAll"); // Checkbox chọn tất cả
+const categoryFilter = document.getElementById("categoryFilter"); // Bộ lọc danh mục
+const brandFilter = document.getElementById("brandFilter"); // Bộ lọc thương hiệu
+const stockFilter = document.getElementById("stockFilter"); // Bộ lọc trạng thái kho
+const priceFilter = document.getElementById("priceFilter"); // Bộ lọc giá
+const applyFilters = document.getElementById("applyFilters"); // Nút áp dụng bộ lọc
+const clearFilters = document.getElementById("clearFilters"); // Nút xóa bộ lọc
+const resetFilters = document.getElementById("resetFilters"); // Nút đặt lại bộ lọc
+const rowsPerPageSelect = document.getElementById("rowsPerPage"); // Chọn số dòng trên mỗi trang
+const refreshTable = document.getElementById("refreshTable"); // Nút làm mới bảng
+const exportBtn = document.getElementById("exportBtn"); // Nút xuất file Excel
+const searchInput = document.querySelector(".search-box input"); // Ô tìm kiếm
+const modalTitle = document.getElementById("modalTitle"); // Tiêu đề modal thêm/chỉnh sửa sản phẩm
+const deleteProductName = document.getElementById("deleteProductName"); // Tên sản phẩm trong modal xóa
+const productForm = document.getElementById("productForm"); // Form thêm/chỉnh sửa sản phẩm
+const imageUpload = document.getElementById("imageUpload"); // Nút tải ảnh sản phẩm
+const imagePreview = document.getElementById("imagePreview"); // Khung xem trước ảnh sản phẩm
+const toast = document.getElementById("toast"); // Thông báo toast
+const toastTitle = document.getElementById("toastTitle"); // Tiêu đề thông báo toast
+const toastMessage = document.getElementById("toastMessage"); // Nội dung thông báo toast
+const toastIcon = document.getElementById("toastIcon"); // Biểu tượng thông báo toast
+const closeToast = document.getElementById("closeToast"); // Nút đóng thông báo toast
 // ========== SIDEBAR TOGGLE ==========
 toggleSidebar.addEventListener("click", function () {
   document.querySelector(".sidebar").classList.toggle("collapsed");
