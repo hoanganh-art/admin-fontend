@@ -36,7 +36,24 @@ const clearFilters = document.getElementById("clearFilters");
 // ========== PHẦN 3: HÀM CHÍNH - LẤY VÀ HIỂN THỊ SẢN PHẨM ==========
 
 /**
- * Hàm chính: Lấy dữ liệu từ API và hiển thị lên bảng
+ * 🔄 HÀM CHÍNH: Lấy dữ liệu từ API và hiển thị lên bảng
+ * 
+ * TÁC DỤNG:
+ *   - Gọi API lấy dữ liệu sản phẩm dựa trên các bộ lọc và phân trang
+ *   - Xử lý các định dạng phản hồi khác nhau từ API
+ *   - Cập nhật giao diện bảng sản phẩm với dữ liệu mới
+ *   - Cập nhật thông tin phân trang
+ * 
+ * CÔNG DỤNG:
+ *   - Là hàm trung tâm của ứng dụng, được gọi mỗi khi cần refresh dữ liệu
+ *   - Xử lý filter, tìm kiếm, phân trang từ giao diện
+ *   - Hiển thị loading state, error state hoặc empty state khi cần
+ * 
+ * THAM SỐ:
+ *   - Không có tham số (sử dụng biến global)
+ * 
+ * TRẢ VỀ:
+ *   - Không có (async function, update giao diện trực tiếp)
  */
 async function renderProductsTable() {
   try {
@@ -154,8 +171,24 @@ async function renderProductsTable() {
 // ========== PHẦN 4: HÀM HIỂN THỊ DANH SÁCH SẢN PHẨM ==========
 
 /**
- * Hiển thị danh sách sản phẩm lên bảng HTML
- * @param {Array} products - Mảng chứa các object sản phẩm
+ * 📋 Hiển thị danh sách sản phẩm lên bảng HTML
+ * 
+ * TÁC DỤNG:
+ *   - Duyệt qua mảng sản phẩm và tạo từng dòng (row) trong bảng
+ *   - Định dạng dữ liệu (giá tiền, trạng thái kho, ảnh...)
+ *   - Tạo các nút thao tác (xem, sửa, xóa) cho mỗi sản phẩm
+ *   - Hiển thị empty state khi không có sản phẩm
+ * 
+ * CÔNG DỤNG:
+ *   - Tạo UI bảng sản phẩm từ dữ liệu JSON
+ *   - Cho phép người dùng tương tác với từng sản phẩm
+ * 
+ * THAM SỐ:
+ *   - products (Array): Mảng các object sản phẩm từ API
+ *     Ví dụ: [{id: 1, product_name: "iPhone", price: 15000000, ...}, ...]
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật innerHTML của productsTableBody)
  */
 function renderProductsList(products) {
   // 1. Xóa toàn bộ nội dung cũ trong tbody
@@ -276,9 +309,20 @@ function renderProductsList(products) {
 // ========== PHẦN 5: CÁC HÀM HỖ TRỢ ĐỊNH DẠNG DỮ LIỆU ==========
 
 /**
- * Định dạng số tiền (thêm dấu chấm phân cách hàng nghìn)
- * @param {number} price - Số tiền cần định dạng
- * @returns {string} - Chuỗi đã định dạng
+ * 💰 Định dạng số tiền (thêm dấu chấm phân cách hàng nghìn)
+ * 
+ * TÁC DỤNG:
+ *   - Chuyển số tiền thành chuỗi với dấu chấm phân cách
+ *   - Làm cho giá tiền dễ đọc hơn
+ * 
+ * CÔNG DỤNG:
+ *   - Hiển thị giá tiền đẹp mắt: 25490000 -> "25.490.000"
+ * 
+ * THAM SỐ:
+ *   - price (number): Số tiền cần định dạng
+ * 
+ * TRẢ VỀ:
+ *   - String: Giá tiền đã định dạng (vd: "25.490.000")
  */
 function formatPrice(price) {
   // Kiểm tra nếu price không phải số
@@ -290,9 +334,20 @@ function formatPrice(price) {
 }
 
 /**
- * Chuyển mã danh mục thành tên hiển thị
- * @param {string} category - Mã danh mục (vd: "smartphone")
- * @returns {string} - Tên danh mục bằng tiếng Việt
+ * 🏷️ Chuyển mã danh mục thành tên hiển thị tiếng Việt
+ * 
+ * TÁC DỤNG:
+ *   - Ánh xạ mã danh mục (tiếng Anh) thành tên tiếng Việt
+ *   - Nếu không tìm thấy trong map, giữ nguyên mã
+ * 
+ * CÔNG DỤNG:
+ *   - Hiển thị tên danh mục thân thiện với người dùng Việt
+ * 
+ * THAM SỐ:
+ *   - category (string): Mã danh mục (vd: "smartphone", "tablet", "laptop")
+ * 
+ * TRẢ VỀ:
+ *   - String: Tên danh mục tiếng Việt (vd: "Điện thoại", "Máy tính bảng")
  */
 function getCategoryText(category) {
   // Object ánh xạ mã danh mục -> tên tiếng Việt
@@ -309,9 +364,24 @@ function getCategoryText(category) {
 }
 
 /**
- * Xác định trạng thái kho hàng dựa trên số lượng
- * @param {number} stock - Số lượng tồn kho
- * @returns {string} - Mã trạng thái ("in-stock", "low-stock", "out-of-stock")
+ * 📦 Xác định trạng thái kho hàng dựa trên số lượng
+ * 
+ * TÁC DỤNG:
+ *   - Kiểm tra số lượng tồn kho
+ *   - Trả về mã trạng thái tương ứng
+ * 
+ * CÔNG DỤNG:
+ *   - Xác định màu sắc và text hiển thị trong bảng
+ * 
+ * THAM SỐ:
+ *   - stock (number): Số lượng tồn kho
+ * 
+ * TRẢ VỀ:
+ *   - String: Mã trạng thái
+ *     - "out-of-stock": Hết hàng (stock = 0)
+ *     - "low-stock": Sắp hết (stock <= 5)
+ *     - "in-stock": Còn hàng (stock > 5)
+ *     - "unknown": Không xác định (nếu stock bị null)
  */
 function getStockStatus(stock) {
   // Kiểm tra stock có hợp lệ không
@@ -324,9 +394,19 @@ function getStockStatus(stock) {
 }
 
 /**
- * Chuyển mã trạng thái thành text hiển thị
- * @param {string} status - Mã trạng thái
- * @returns {string} - Text hiển thị bằng tiếng Việt
+ * 🏷️ Chuyển mã trạng thái kho thành text tiếng Việt
+ * 
+ * TÁC DỤNG:
+ *   - Ánh xạ mã trạng thái thành text hiển thị
+ * 
+ * CÔNG DỤNG:
+ *   - Hiển thị trạng thái kho bằng tiếng Việt thân thiện
+ * 
+ * THAM SỐ:
+ *   - status (string): Mã trạng thái ("in-stock", "low-stock", "out-of-stock", "unknown")
+ * 
+ * TRẢ VỀ:
+ *   - String: Text hiển thị ("Còn hàng", "Sắp hết", "Hết hàng", "Không xác định")
  */
 function getStockStatusText(status) {
   const statusMap = {
@@ -339,9 +419,21 @@ function getStockStatusText(status) {
 }
 
 /**
- * Escape HTML để tránh tấn công XSS (Cross-Site Scripting)
- * @param {string} text - Chuỗi cần escape
- * @returns {string} - Chuỗi đã escape
+ * 🔐 Escape HTML để tránh tấn công XSS (Cross-Site Scripting)
+ * 
+ * TÁC DỤNG:
+ *   - Chuyển các ký tự HTML đặc biệt thành mã HTML an toàn
+ *   - Ngăn chặn code JavaScript độc hại được thực thi
+ * 
+ * CÔNG DỤNG:
+ *   - Bảo mật: Khi hiển thị dữ liệu từ người dùng hoặc API
+ *   - Ví dụ: "<img src=x onerror=alert('hacked')>" được chuyển thành chuỗi an toàn
+ * 
+ * THAM SỐ:
+ *   - text (string): Chuỗi cần escape
+ * 
+ * TRẢ VỀ:
+ *   - String: Chuỗi đã escape (an toàn hiển thị trong HTML)
  */
 function escapeHtml(text) {
   // Tạo một thẻ div ẩn
@@ -357,8 +449,21 @@ function escapeHtml(text) {
 // ========== PHẦN 6: HÀM CẬP NHẬT THÔNG TIN BẢNG ==========
 
 /**
- * Cập nhật thông tin phân trang dưới bảng
- * @param {object} paginationData - Dữ liệu phân trang từ API
+ * 📋 Cập nhật thông tin phân trang dưới bảng (hiển thị "1-12 trong 150 sản phẩm")
+ * 
+ * TÁC DỤNG:
+ *   - Cập nhật text thông tin phân trang
+ *   - Hiển thị sản phẩm bắt đầu, kết thúc, và tổng số
+ * 
+ * CÔNG DỤNG:
+ *   - Người dùng biết đang xem sản phẩm nào trong danh sách
+ * 
+ * THAM SỐ:
+ *   - paginationData (object): Dữ liệu phân trang từ API
+ *     {total: 150, from: 1, to: 12, ...}
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật .table-info element)
  */
 function updateTableInfo(paginationData) {
   // Kiểm tra nếu không có dữ liệu phân trang
@@ -384,8 +489,20 @@ function updateTableInfo(paginationData) {
 }
 
 /**
- * Cập nhật thông tin phân trang (số trang, nút next/prev)
- * @param {object} paginationData - Dữ liệu phân trang từ API
+ * 📄 Cập nhật thông tin phân trang (tính tổng số trang)
+ * 
+ * TÁC DỤNG:
+ *   - Tính toán tổng số trang dựa trên tổng sản phẩm và số item mỗi trang
+ *   - Gọi hàm cập nhật nút phân trang
+ * 
+ * CÔNG DỤNG:
+ *   - Chuẩn bị dữ liệu để hiển thị nút phân trang (1, 2, 3, ...)
+ * 
+ * THAM SỐ:
+ *   - paginationData (object): {total: 150, per_page: 12, current_page: 1, ...}
+ * 
+ * TRẢ VỀ:
+ *   - Không có (gọi updatePaginationButtons)
  */
 function updatePaginationInfo(paginationData) {
   if (!paginationData) return;
@@ -403,9 +520,25 @@ function updatePaginationInfo(paginationData) {
 }
 
 /**
- * Cập nhật trạng thái các nút phân trang
- * @param {number} currentPage - Trang hiện tại
- * @param {number} totalPages - Tổng số trang
+ * 🖱️ Cập nhật trạng thái các nút phân trang (1, 2, 3, ... First, Prev, Next, Last)
+ * 
+ * TÁC DỤNG:
+ *   - Hiển thị/ẩn các nút số trang (chỉ hiển thị 5 nút quanh trang hiện tại)
+ *   - Đánh dấu nút trang hiện tại là active
+ *   - Vô hiệu hóa nút First/Prev nếu ở trang 1
+ *   - Vô hiệu hóa nút Next/Last nếu ở trang cuối
+ *   - Gán sự kiện click cho các nút
+ * 
+ * CÔNG DỤNG:
+ *   - Cho phép người dùng chuyển trang
+ *   - Hiển thị UI phân trang chuyên nghiệp
+ * 
+ * THAM SỐ:
+ *   - currentPage (number): Trang hiện tại (vd: 2)
+ *   - totalPages (number): Tổng số trang (vd: 13)
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật DOM)
  */
 function updatePaginationButtons(currentPage, totalPages) {
   // Lấy container chứa các nút phân trang
@@ -507,7 +640,21 @@ function updatePaginationButtons(currentPage, totalPages) {
 // ========== PHẦN 7: HÀM LOAD THỐNG KÊ ==========
 
 /**
- * Lấy thống kê từ API và cập nhật lên giao diện
+ * 📊 Lấy thống kê sản phẩm từ API và cập nhật lên 4 thẻ thống kê
+ * 
+ * TÁC DỤNG:
+ *   - Gọi API lấy thống kê: tổng sản phẩm, đang bán, sắp hết, hết hàng
+ *   - Cập nhật các thẻ thống kê trên trang chủ
+ * 
+ * CÔNG DỤNG:
+ *   - Hiển thị overview nhanh về số lượng sản phẩm
+ *   - Giúp quản lý nhìn tổng quan tình hình kho
+ * 
+ * THAM SỐ:
+ *   - Không có
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật .stat-card elements)
  */
 async function loadStats() {
   try {
@@ -552,7 +699,21 @@ async function loadStats() {
 // ========== PHẦN 8: HÀM LOAD FILTER OPTIONS ==========
 
 /**
- * Lấy danh sách thương hiệu và danh mục từ API để điền vào dropdown
+ * 🔧 Lấy danh sách thương hiệu và danh mục từ API để điền vào dropdown filter
+ * 
+ * TÁC DỤNG:
+ *   - Gọi API lấy danh sách brands và categories
+ *   - Cập nhật dropdown filter với dữ liệu mới
+ * 
+ * CÔNG DỤNG:
+ *   - Người dùng chỉ nhìn thấy các brand/category thực tế từ database
+ *   - Tránh hardcode dữ liệu
+ * 
+ * THAM SỐ:
+ *   - Không có
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật dropdown options)
  */
 async function loadFilterOptions() {
   try {
@@ -578,8 +739,21 @@ async function loadFilterOptions() {
 }
 
 /**
- * Cập nhật dropdown thương hiệu với dữ liệu từ API
- * @param {Array} brands - Mảng chứa các object thương hiệu
+ * 🏷️ Cập nhật dropdown thương hiệu với dữ liệu từ API
+ * 
+ * TÁC DỤNG:
+ *   - Xóa các option cũ trong dropdown brand
+ *   - Thêm từng brand từ mảng vào dropdown
+ *   - Giữ lại option "Tất cả thương hiệu" đầu tiên
+ * 
+ * CÔNG DỤNG:
+ *   - Tạo danh sách filter động
+ * 
+ * THAM SỐ:
+ *   - brands (Array): Mảng {id, brand_name} từ API
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật brandFilter innerHTML)
  */
 function updateBrandFilter(brands) {
   // Kiểm tra nếu dropdown tồn tại
@@ -612,8 +786,21 @@ function updateBrandFilter(brands) {
 }
 
 /**
- * Cập nhật dropdown danh mục với dữ liệu từ API
- * @param {Array} categories - Mảng chứa các danh mục
+ * 📂 Cập nhật dropdown danh mục với dữ liệu từ API
+ * 
+ * TÁC DỤNG:
+ *   - Xóa các option cũ trong dropdown category
+ *   - Thêm từng danh mục từ mảng vào dropdown
+ *   - Giữ lại option "Tất cả danh mục" đầu tiên
+ * 
+ * CÔNG DỤNG:
+ *   - Tạo danh sách filter danh mục động
+ * 
+ * THAM SỐ:
+ *   - categories (Array): Mảng category hoặc {id, label} từ API
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật categoryFilter innerHTML)
  */
 function updateCategoryFilter(categories) {
   if (!categoryFilter) {
@@ -644,7 +831,23 @@ function updateCategoryFilter(categories) {
 // ========== PHẦN 9: HÀM XỬ LÝ SỰ KIỆN ==========
 
 /**
- * Xử lý sự kiện tìm kiếm real-time
+ * 🔍 Xử lý sự kiện tìm kiếm real-time (debounce)
+ * 
+ * TÁC DỤNG:
+ *   - Lắng nghe sự kiện input trên ô tìm kiếm
+ *   - Chờ 500ms sau khi ngừng gõ mới gọi API (debounce)
+ *   - Reset về trang 1 khi tìm kiếm
+ *   - Nếu ô search trống, load lại dữ liệu gốc
+ * 
+ * CÔNG DỤNG:
+ *   - Tìm kiếm sản phẩm real-time mà không gây lag
+ *   - Tiết kiệm API call bằng debounce
+ * 
+ * THAM SỐ:
+ *   - Không có (sử dụng biến global searchInput)
+ * 
+ * TRẢ VỀ:
+ *   - Không có (gán event listener)
  */
 function setupSearchEvent() {
   if (!searchInput) return;
@@ -678,7 +881,21 @@ function setupSearchEvent() {
 }
 
 /**
- * Xử lý sự kiện cho các nút filter
+ * ⚙️ Xử lý sự kiện cho các nút filter (category, brand, stock, price)
+ * 
+ * TÁC DỤNG:
+ *   - Gán event listener cho các dropdown filter
+ *   - Gán event listener cho nút "Áp dụng filter" và "Xóa filter"
+ *   - Khi filter thay đổi, reset trang 1 và load lại dữ liệu
+ * 
+ * CÔNG DỤNG:
+ *   - Cho phép người dùng lọc sản phẩm theo nhiều tiêu chí
+ * 
+ * THAM SỐ:
+ *   - Không có (sử dụng biến global categoryFilter, brandFilter, ...)
+ * 
+ * TRẢ VỀ:
+ *   - Không có (gán event listener)
  */
 function setupFilterEvents() {
   // Khi category thay đổi
@@ -737,7 +954,22 @@ function setupFilterEvents() {
 }
 
 /**
- * Xử lý sự kiện phân trang
+ * 📑 Xử lý sự kiện phân trang (thay đổi rows per page, làm mới)
+ * 
+ * TÁC DỤNG:
+ *   - Lắng nghe sự kiện thay đổi rows per page
+ *   - Lắng nghe click nút "Làm mới" (refresh table)
+ *   - Khi thay đổi, reset trang 1 và load lại dữ liệu
+ * 
+ * CÔNG DỤNG:
+ *   - Người dùng có thể chọn xem 12, 25, 50... sản phẩm mỗi trang
+ *   - Có nút refresh để cập nhật dữ liệu nhanh
+ * 
+ * THAM SỐ:
+ *   - Không có (sử dụng biến global rowsPerPageSelect)
+ * 
+ * TRẢ VỀ:
+ *   - Không có (gán event listener)
  */
 function setupPaginationEvents() {
   // Khi thay đổi số dòng mỗi trang
@@ -769,8 +1001,21 @@ function setupPaginationEvents() {
 // ========== PHẦN 10: HÀM XEM VÀ CHỈNH SỬA SẢN PHẨM ==========
 
 /**
- * Xem chi tiết sản phẩm
- * @param {number} productId - ID sản phẩm
+ * 👁️ Xem chi tiết sản phẩm
+ * 
+ * TÁC DỤNG:
+ *   - Gọi API lấy chi tiết sản phẩm theo ID
+ *   - Hiển thị thông tin sản phẩm trong alert (có thể thay bằng modal)
+ * 
+ * CÔNG DỤNG:
+ *   - Người dùng có thể xem thông tin chi tiết một sản phẩm
+ *   - Từ nút "Xem chi tiết" (mắt) trong bảng
+ * 
+ * THAM SỐ:
+ *   - productId (number): ID sản phẩm cần xem
+ * 
+ * TRẢ VỀ:
+ *   - Không có (hiển thị alert hoặc modal)
  */
 async function viewProduct(productId) {
   try {
@@ -806,8 +1051,22 @@ async function viewProduct(productId) {
 }
 
 /**
- * Mở modal chỉnh sửa sản phẩm
- * @param {number} productId - ID sản phẩm
+ * ✏️ Mở modal chỉnh sửa sản phẩm
+ * 
+ * TÁC DỤNG:
+ *   - Gọi API lấy thông tin sản phẩm theo ID
+ *   - Đánh dấu chế độ chỉnh sửa (isEditing = true)
+ *   - Mở modal và điền dữ liệu vào form
+ * 
+ * CÔNG DỤNG:
+ *   - Người dùng có thể sửa thông tin sản phẩm
+ *   - Từ nút "Chỉnh sửa" (bút) trong bảng
+ * 
+ * THAM SỐ:
+ *   - productId (number): ID sản phẩm cần sửa
+ * 
+ * TRẢ VỀ:
+ *   - Không có (mở modal)
  */
 async function editProduct(productId) {
   try {
@@ -834,9 +1093,23 @@ async function editProduct(productId) {
 }
 
 /**
- * Hiển thị modal xác nhận xóa
- * @param {number} productId - ID sản phẩm cần xóa
- * @param {string} productName - Tên sản phẩm (để hiển thị)
+ * 🗑️ Hiển thị modal xác nhận xóa sản phẩm
+ * 
+ * TÁC DỤNG:
+ *   - Lưu ID sản phẩm vào biến global productToDelete
+ *   - Hiển thị tên sản phẩm trong modal
+ *   - Thêm class 'active' để hiển thị modal
+ * 
+ * CÔNG DỤNG:
+ *   - Xác nhận trước khi xóa (tránh xóa nhầm)
+ *   - Từ nút "Xóa" (thùng rác) trong bảng
+ * 
+ * THAM SỐ:
+ *   - productId (number): ID sản phẩm cần xóa
+ *   - productName (string): Tên sản phẩm (hiển thị trong modal)
+ * 
+ * TRẢ VỀ:
+ *   - Không có (hiển thị modal)
  */
 function showDeleteModal(productId, productName) {
   console.log(`🗑️ Mở modal xóa sản phẩm: ${productName} (ID: ${productId})`);
@@ -858,7 +1131,22 @@ function showDeleteModal(productId, productName) {
 }
 
 /**
- * Xóa sản phẩm sau khi xác nhận
+ * ✖️ Xóa sản phẩm sau khi xác nhận (gọi từ nút trong modal)
+ * 
+ * TÁC DỤNG:
+ *   - Gọi API xóa sản phẩm
+ *   - Đóng modal xóa
+ *   - Load lại danh sách sản phẩm
+ *   - Hiển thị thông báo thành công hoặc lỗi
+ * 
+ * CÔNG DỤNG:
+ *   - Xóa sản phẩm khỏi database
+ * 
+ * THAM SỐ:
+ *   - Không có (sử dụng biến global productToDelete)
+ * 
+ * TRẢ VỀ:
+ *   - Không có (gọi API và cập nhật UI)
  */
 async function deleteProduct() {
   if (!productToDelete) {
@@ -893,7 +1181,20 @@ async function deleteProduct() {
 }
 
 /**
- * Đóng modal xóa
+ * ✖️ Đóng modal xác nhận xóa
+ * 
+ * TÁC DỤNG:
+ *   - Xóa class 'active' từ modal (ẩn modal)
+ *   - Reset biến productToDelete về null
+ * 
+ * CÔNG DỤNG:
+ *   - Tắt modal xóa (từ nút X hoặc Hủy)
+ * 
+ * THAM SỐ:
+ *   - Không có
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật DOM)
  */
 function closeDeleteModal() {
   const deleteModal = document.getElementById("deleteModal");
@@ -906,7 +1207,20 @@ function closeDeleteModal() {
 // ========== PHẦN 11: HÀM HIỂN THỊ TRẠNG THÁI ==========
 
 /**
- * Hiển thị trạng thái loading khi đang tải dữ liệu
+ * ⏳ Hiển thị trạng thái loading khi đang tải dữ liệu
+ * 
+ * TÁC DỤNG:
+ *   - Xóa nội dung bảng
+ *   - Hiển thị spinner loading và text "Đang tải dữ liệu..."
+ * 
+ * CÔNG DỤNG:
+ *   - Feedback trực quan cho người dùng biết đang tải
+ * 
+ * THAM SỐ:
+ *   - Không có
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật innerHTML productsTableBody)
  */
 function showLoadingState() {
   if (!productsTableBody) return;
@@ -925,8 +1239,21 @@ function showLoadingState() {
 }
 
 /**
- * Hiển thị thông báo lỗi khi không tải được dữ liệu
- * @param {string} errorMessage - Thông báo lỗi
+ * 💥 Hiển thị thông báo lỗi khi không tải được dữ liệu
+ * 
+ * TÁC DỤNG:
+ *   - Xóa nội dung bảng
+ *   - Hiển thị biểu tượng cảnh báo và thông báo lỗi
+ *   - Cung cấp nút "Thử lại" và "Xóa bộ lọc"
+ * 
+ * CÔNG DỤNG:
+ *   - Hiển thị lỗi một cách thân thiện
+ * 
+ * THAM SỐ:
+ *   - errorMessage (string): Nội dung thông báo lỗi
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật innerHTML productsTableBody)
  */
 function showErrorState(errorMessage) {
   if (!productsTableBody) return;
@@ -953,10 +1280,24 @@ function showErrorState(errorMessage) {
 }
 
 /**
- * Hiển thị thông báo toast
- * @param {string} title - Tiêu đề toast
- * @param {string} message - Nội dung toast
- * @param {string} type - Loại toast (success, error, warning)
+ * 🔔 Hiển thị thông báo toast (góc trên cùng màn hình)
+ * 
+ * TÁC DỤNG:
+ *   - Hiển thị toast với tiêu đề, nội dung, và icon
+ *   - Tự động ẩn sau 5 giây
+ *   - Có 3 loại: success (xanh), error (đỏ), warning (vàng)
+ * 
+ * CÔNG DỤNG:
+ *   - Thông báo kết quả thao tác (xóa, sửa, tìm kiếm...)
+ *   - Thay thế alert() để UX tốt hơn
+ * 
+ * THAM SỐ:
+ *   - title (string): Tiêu đề toast
+ *   - message (string): Nội dung thông báo
+ *   - type (string): "success" | "error" | "warning" (mặc định: "success")
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật DOM)
  */
 function showToast(title, message, type = "success") {
   // Tìm các phần tử toast trong DOM
@@ -1008,7 +1349,24 @@ function showToast(title, message, type = "success") {
 // ========== PHẦN 12: HÀM TIỆN ÍCH ==========
 
 /**
- * Xóa tất cả filter và reset về trạng thái ban đầu
+ * 🧹 Xóa tất cả filter và reset về trạng thái ban đầu
+ * 
+ * TÁC DỤNG:
+ *   - Reset tất cả dropdown filter về giá trị rỗng
+ *   - Xóa text trong ô tìm kiếm
+ *   - Reset về trang 1
+ *   - Load lại danh sách sản phẩm gốc
+ *   - Hiển thị toast thông báo
+ * 
+ * CÔNG DỤNG:
+ *   - Xóa toàn bộ bộ lọc bằng một cách nhấp
+ *   - Từ nút "Xóa tất cả bộ lọc" trong empty state hoặc header
+ * 
+ * THAM SỐ:
+ *   - Không có
+ * 
+ * TRẢ VỀ:
+ *   - Không có (cập nhật UI)
  */
 function clearAllFilters() {
   console.log("🧹 Đang xóa tất cả filter...");
@@ -1033,7 +1391,25 @@ function clearAllFilters() {
 // ========== PHẦN 13: KHỞI TẠO ỨNG DỤNG ==========
 
 /**
- * Hàm khởi tạo - chạy khi trang web được tải xong
+ * 🚀 Hàm khởi tạo - chạy khi trang web được tải xong (DOMContentLoaded)
+ * 
+ * TÁC DỤNG:
+ *   - Kiểm tra kết nối API
+ *   - Tải thống kê (4 thẻ)
+ *   - Tải filter options (brands, categories)
+ *   - Tải danh sách sản phẩm đầu tiên
+ *   - Gán event listener cho tất cả các nút và dropdown
+ *   - Gán event listener cho nút thêm/xóa/sửa sản phẩm
+ * 
+ * CÔNG DỤNG:
+ *   - Khởi tạo toàn bộ ứng dụng khi người dùng truy cập trang
+ *   - Là điểm vào chính của ứng dụng
+ * 
+ * THAM SỐ:
+ *   - Không có
+ * 
+ * TRẢ VỀ:
+ *   - Không có (async function)
  */
 async function initializeApp() {
   console.log("🚀 Đang khởi tạo ứng dụng Quản lý Sản phẩm...");
@@ -1098,7 +1474,22 @@ async function initializeApp() {
 }
 
 /**
- * Kiểm tra kết nối đến API backend
+ * 🔌 Kiểm tra kết nối đến API backend
+ * 
+ * TÁC DỤNG:
+ *   - Gửi request GET đến API_BASE_URL/products
+ *   - Kiểm tra response status
+ *   - Hiển thị thông báo kết quả
+ * 
+ * CÔNG DỤNG:
+ *   - Đảm bảo backend đang chạy trước khi tải dữ liệu
+ *   - Giúp debug vấn đề CORS hoặc kết nối
+ * 
+ * THAM SỐ:
+ *   - Không có (sử dụng API_BASE_URL từ products_API.js)
+ * 
+ * TRẢ VỀ:
+ *   - Boolean: true nếu thành công, false nếu lỗi
  */
 async function testAPIConnection() {
   try {
