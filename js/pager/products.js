@@ -9,42 +9,38 @@ let isEditing = false;        // Chế độ chỉnh sửa
 let currentProductId = null;  // ID sản phẩm đang sửa
 
 // ========== DOM ELEMENTS ==========
-const productsTableBody = document.getElementById("productsTableBody"); // Thân bảng sản phẩm
-const categoryFilter = document.getElementById("categoryFilter"); //Bộ lọc sản phẩm
-const brandFilter = document.getElementById("brandFilter"); // Bộ lọc thương hiệu
-const stockFilter = document.getElementById("stockFilter"); // Bộ lọc trạng thái kho
-const priceFilter = document.getElementById("priceFilter"); // Bộ lọc khoảng giá
-const searchInput = document.querySelector(".search-box input"); // Input tìm kiếm
-const rowsPerPageSelect = document.getElementById("rowsPerPage"); // Chọn số dòng/trang
-const addProductBtn = document.getElementById("addProductBtn"); // Nút thêm sản phẩm
-const applyFilters = document.getElementById("applyFilters"); // Nút áp dụng bộ lọc
-const clearFilters = document.getElementById("clearFilters"); // Nút xóa bộ lọc
+const productsTableBody = document.getElementById("productsTableBody");
+const categoryFilter = document.getElementById("categoryFilter");
+const brandFilter = document.getElementById("brandFilter");
+const stockFilter = document.getElementById("stockFilter");
+const priceFilter = document.getElementById("priceFilter");
+const searchInput = document.querySelector(".search-box input");
+const rowsPerPageSelect = document.getElementById("rowsPerPage");
+const addProductBtn = document.getElementById("addProductBtn");
+const applyFilters = document.getElementById("applyFilters");
+const clearFilters = document.getElementById("clearFilters");
 
 // ========== HÀM CHÍNH ==========
 
 /**
  * Lấy và hiển thị danh sách sản phẩm
- * Xử lý phân trang, tìm kiếm, lọc dữ liệu
  */
 async function renderProductsTable() {
   try {
     showLoadingState();
     
-    // Tạo đối tượng filter từ các input
     const filters = {
       page: currentPage,
       per_page: rowsPerPage,
-      ...(categoryFilter.value && { category: categoryFilter.value }), // Thêm bộ lọc nếu có giá trị
-      ...(brandFilter.value && { brand: brandFilter.value }), // Thêm bộ lọc nếu có giá trị
-      ...(stockFilter.value && { stock_status: stockFilter.value }), // Thêm bộ lọc nếu có giá trị
-      ...(priceFilter.value && { price_range: priceFilter.value }), // Thêm bộ lọc nếu có giá trị
-      ...(searchInput.value.trim() && { search: searchInput.value.trim() }) // Thêm tìm kiếm nếu có giá trị
+      ...(categoryFilter.value && { category: categoryFilter.value }),
+      ...(brandFilter.value && { brand: brandFilter.value }),
+      ...(stockFilter.value && { stock_status: stockFilter.value }),
+      ...(priceFilter.value && { price_range: priceFilter.value }),
+      ...(searchInput.value.trim() && { search: searchInput.value.trim() })
     };
 
-    // Gọi API lấy dữ liệu
     const response = await productAPI.getProducts(filters);
     
-    // Xử lý response từ API
     let products = [];
     let paginationData = {};
     
@@ -78,7 +74,6 @@ async function renderProductsTable() {
       filteredProducts = products;
       renderProductsList(products);
       
-      // Cập nhật thông tin phân trang
       if (paginationData.total !== undefined) updateTableInfo(paginationData);
       if (paginationData.page !== undefined) updatePaginationInfo(paginationData);
       
@@ -125,14 +120,23 @@ function renderProductsList(products) {
     // Chuẩn hóa dữ liệu sản phẩm
     const productName = product.product_name || product['tên_sản_phẩm'] || 'N/A';
     const categoryText = getCategoryText(product.category || product['danh_mục']);
-    const brandText = (product.brand && product.brand.brand_name) || 
-                      product.brand_name || 
-                      product['tên_thương_hiệu'] || 
-                      product.brand || 
-                      "Không xác định";
+    
+    let brandText = "Không xác định";
+    if (product.brand && typeof product.brand === 'object') {
+      brandText = product.brand.brand_name || product.brand.name || "Không xác định";
+    } else if (product.brand_name) {
+      brandText = product.brand_name;
+    } else if (product.brand) {
+      brandText = product.brand;
+    }
+    
     const stock = product.stock || product['tồn_kho'] || 0;
     const stockStatus = getStockStatus(stock);
-    const formattedPrice = formatPrice(product.price || product['giá'] || 0);
+    
+    // FIX 1: Sửa hàm formatPrice để chắc chắn xử lý đúng
+    const priceValue = product.price || product['giá'] || 0;
+    const formattedPrice = formatPrice(priceValue);
+    
     const sku = product.sku || product['mã_sku'] || 'N/A';
     const image = product.image || product['hình_ảnh'] || null;
     
@@ -181,10 +185,20 @@ function renderProductsList(products) {
 
 // ========== HÀM ĐỊNH DẠNG ==========
 
-/** Định dạng giá tiền: 25490000 → "25.490.000" */
+/** 
+ * FIX 2: Định dạng giá tiền an toàn hơn
+ * Sử dụng toLocaleString thay vì regex để tránh lỗi
+ */
 function formatPrice(price) {
-  if (!price || isNaN(price)) return "0";
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  // Kiểm tra giá trị hợp lệ
+  if (price === null || price === undefined || price === '') return "0";
+  
+  // Đảm bảo price là số
+  const num = Number(price);
+  if (isNaN(num)) return "0";
+  
+  // Sử dụng toLocaleString để format an toàn
+  return num.toLocaleString('vi-VN');
 }
 
 /** Chuyển mã danh mục thành tên tiếng Việt */
@@ -260,7 +274,6 @@ function updatePaginationButtons(currentPage, totalPages) {
   const paginationContainer = document.querySelector(".pagination");
   if (!paginationContainer) return;
   
-  // Cập nhật nút số trang
   const pageButtons = paginationContainer.querySelectorAll(
     '.pagination-btn:not(#firstPage):not(#prevPage):not(#nextPage):not(#lastPage)'
   );
@@ -288,7 +301,6 @@ function updatePaginationButtons(currentPage, totalPages) {
     }
   });
   
-  // Cập nhật nút điều hướng
   const firstPageBtn = document.getElementById("firstPage");
   const prevPageBtn = document.getElementById("prevPage");
   const nextPageBtn = document.getElementById("nextPage");
@@ -299,7 +311,6 @@ function updatePaginationButtons(currentPage, totalPages) {
   if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages;
   if (lastPageBtn) lastPageBtn.disabled = currentPage === totalPages;
   
-  // Gán sự kiện cho nút điều hướng
   if (firstPageBtn) firstPageBtn.onclick = () => { if (currentPage > 1) { currentPage = 1; renderProductsTable(); } };
   if (prevPageBtn) prevPageBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderProductsTable(); } };
   if (nextPageBtn) nextPageBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderProductsTable(); } };
@@ -316,7 +327,6 @@ async function loadStats() {
     if (response.success && response.data) {
       const stats = response.data;
       
-      // Cập nhật 4 thẻ thống kê
       const totalElement = document.querySelector('.stat-card:nth-child(1) .stat-number');
       const availableElement = document.querySelector('.stat-card:nth-child(2) .stat-number');
       const lowStockElement = document.querySelector('.stat-card:nth-child(3) .stat-number');
@@ -337,13 +347,11 @@ async function loadStats() {
 /** Lấy danh sách brands và categories cho dropdown */
 async function loadFilterOptions() {
   try {
-    // Lấy danh sách thương hiệu
     const brandsResponse = await productAPI.getBrands();
     if (brandsResponse.success && brandsResponse.data) {
       updateBrandFilter(brandsResponse.data);
     }
     
-    // Lấy danh sách danh mục  
     const categoriesResponse = await productAPI.getCategories();
     if (categoriesResponse.success && categoriesResponse.data) {
       updateCategoryFilter(categoriesResponse.data);
@@ -359,12 +367,12 @@ function updateBrandFilter(brands) {
   
   const firstOption = brandFilter.options[0];
   brandFilter.innerHTML = '';
-  brandFilter.appendChild(firstOption);
+  if (firstOption) brandFilter.appendChild(firstOption);
   
   brands.forEach(brand => {
     const option = document.createElement('option');
-    option.value = brand.id || brand.value;
-    option.textContent = brand.brand_name || brand.name || brand.label;
+    option.value = brand.id || brand.brand_id || 1;
+    option.textContent = brand.brand_name || brand.name || brand.label || brand;
     brandFilter.appendChild(option);
   });
 }
@@ -416,7 +424,6 @@ function setupSearchEvent() {
 
 /** Cài đặt sự kiện cho các filter */
 function setupFilterEvents() {
-  // Lắng nghe thay đổi filter
   [categoryFilter, brandFilter, stockFilter, priceFilter].forEach(filter => {
     if (filter) {
       filter.addEventListener("change", () => {
@@ -426,7 +433,6 @@ function setupFilterEvents() {
     }
   });
   
-  // Nút áp dụng filter
   if (applyFilters) {
     applyFilters.addEventListener("click", () => {
       currentPage = 1;
@@ -435,7 +441,6 @@ function setupFilterEvents() {
     });
   }
   
-  // Nút xóa filter
   if (clearFilters) {
     clearFilters.addEventListener("click", clearAllFilters);
   }
@@ -443,7 +448,6 @@ function setupFilterEvents() {
 
 /** Cài đặt sự kiện phân trang */
 function setupPaginationEvents() {
-  // Thay đổi số dòng/trang
   if (rowsPerPageSelect) {
     rowsPerPageSelect.addEventListener("change", function(e) {
       rowsPerPage = parseInt(e.target.value);
@@ -452,7 +456,6 @@ function setupPaginationEvents() {
     });
   }
   
-  // Nút làm mới
   const refreshTable = document.getElementById("refreshTable");
   if (refreshTable) {
     refreshTable.addEventListener("click", function() {
@@ -618,19 +621,6 @@ function showToast(title, message, type = "success") {
 
 /**
  * 📝 Mở modal thêm sản phẩm mới
- * 
- * TÁC DỤNG:
- *   - Reset form thêm sản phẩm (xóa dữ liệu cũ)
- *   - Cập nhật tiêu đề modal thành "Thêm Sản Phẩm Mới"
- *   - Hiển thị modal bằng class 'active'
- *   - Đánh dấu isEditing = false (chế độ thêm, không phải sửa)
- * 
- * CÔNG DỤNG:
- *   - Cho phép người dùng thêm sản phẩm mới
- *   - Gọi từ nút "Thêm Sản Phẩm" trên header
- * 
- * THAM SỐ: Không có
- * TRẢ VỀ: Không có
  */
 function openAddModal() {
   const productModal = document.getElementById("productModal");
@@ -659,22 +649,7 @@ function openAddModal() {
 
 /**
  * ✏️ Mở modal chỉnh sửa sản phẩm với dữ liệu sản phẩm
- * 
- * TÁC DỤNG:
- *   - Cập nhật tiêu đề modal thành "Chỉnh Sửa Sản Phẩm"
- *   - Điền dữ liệu sản phẩm vào các input trong form
- *   - Hiển thị modal
- *   - Đánh dấu isEditing = true (chế độ chỉnh sửa)
- * 
- * CÔNG DỤNG:
- *   - Cho phép người dùng sửa thông tin sản phẩm
- *   - Được gọi khi click nút "Sửa" trong bảng
- * 
- * THAM SỐ:
- *   - productData (object): Dữ liệu sản phẩm từ API
- *     {id, product_name, sku, price, stock, brand, category, ...}
- * 
- * TRẢ VỀ: Không có
+ * FIX 3: Sửa lỗi hiển thị giá trong modal chỉnh sửa
  */
 function openEditModal(productData) {
   const productModal = document.getElementById("productModal");
@@ -691,19 +666,23 @@ function openEditModal(productData) {
   
   // Đánh dấu chế độ chỉnh sửa
   isEditing = true;
-  currentProductId = productData.id;
+  currentProductId = productData.id || productData.product_id;
+  
+  console.log("📝 Mở modal chỉnh sửa sản phẩm:", productData);
+  console.log("💰 DEBUG - Giá từ API:", productData.price, "Kiểu:", typeof productData.price);
   
   // Điền dữ liệu vào form
   const fields = {
     productName: 'product_name',
     productSku: 'sku',
     productCategory: 'category',
-    productBrand: 'brand_id', // hoặc brand tùy API
+    productBrand: 'brand_id',
     productPrice: 'price',
-    productCost: 'cost',
+    productCost: 'cost_price',
     productStock: 'stock',
-    productStockAlert: 'stock_alert',
-    productDescription: 'description'
+    productDescription: 'description',
+    productRam: 'ram',
+    productStorage: 'storage'
   };
   
   // Điền từng trường dữ liệu
@@ -711,40 +690,64 @@ function openEditModal(productData) {
     const element = document.getElementById(fieldId);
     const dataKey = fields[fieldId];
     
-    if (element && productData[dataKey] !== undefined) {
+    if (element && productData[dataKey] !== undefined && productData[dataKey] !== null) {
       if (element.tagName === 'SELECT') {
         element.value = productData[dataKey];
-      } else if (element.tagName === 'TEXTAREA') {
-        element.textContent = productData[dataKey];
+      } else if (fieldId === 'productDescription') {
+        element.value = productData[dataKey];
+      } else if (fieldId === 'productPrice' || fieldId === 'productCost') {
+        // FIX QUAN TRỌNG: Xử lý giá đúng cách
+        
+        let priceValue = productData[dataKey];
+        console.log(`💰 ${fieldId} - Giá trị gốc:`, priceValue, "Kiểu:", typeof priceValue);
+        
+        // Nếu là string có dấu chấm hoặc dấu phẩy, loại bỏ chúng
+        if (typeof priceValue === 'string') {
+          // Loại bỏ tất cả ký tự không phải số và dấu chấm thập phân
+          priceValue = priceValue.replace(/[^0-9.]/g, '');
+          // Chuyển dấu phẩy thành dấu chấm nếu có (định dạng số)
+          priceValue = priceValue.replace(/,/g, '.');
+        }
+        
+        // Chuyển thành số
+        const numericValue = parseFloat(priceValue);
+        console.log(`💰 ${fieldId} - Giá trị số:`, numericValue);
+        
+        // Hiển thị dưới dạng số nguyên không có dấu phân cách nghìn
+        // Để người dùng dễ chỉnh sửa
+        element.value = isNaN(numericValue) ? '' : Math.round(numericValue).toString();
+        
       } else {
         element.value = productData[dataKey];
       }
     }
   });
   
+  // Điền URL hình ảnh nếu có
+  const imageUrlInput = document.getElementById("imageUrl");
+  if (imageUrlInput && productData.image) {
+    imageUrlInput.value = productData.image;
+  }
+  
   // Điền radio button trạng thái
   const statusRadios = document.querySelectorAll('input[name="productStatus"]');
+  const productStatus = productData.status || 'Available';
+  let formStatus = 'active';
+  
+  if (productStatus === 'Available') formStatus = 'active';
+  else if (productStatus === 'Discontinued' || productStatus === 'Out of Stock') formStatus = 'inactive';
+  
   statusRadios.forEach(radio => {
-    radio.checked = radio.value === (productData.status || 'active');
+    radio.checked = radio.value === formStatus;
   });
   
   // Hiển thị modal
   productModal.classList.add("active");
-  console.log(`✅ Mở modal chỉnh sửa sản phẩm ID: ${productData.id}`);
+  console.log(`✅ Mở modal chỉnh sửa sản phẩm ID: ${currentProductId}`);
 }
 
 /**
  * ❌ Đóng modal sản phẩm
- * 
- * TÁC DỤNG:
- *   - Xóa class 'active' khỏi modal (ẩn modal)
- *   - Reset form để chuẩn bị mở lại
- * 
- * CÔNG DỤNG:
- *   - Tắt modal khi click nút "Hủy" hoặc "X"
- * 
- * THAM SỐ: Không có
- * TRẢ VỀ: Không có
  */
 function closeProductModal() {
   const productModal = document.getElementById("productModal");
@@ -763,71 +766,133 @@ function closeProductModal() {
 
 /**
  * 💾 Lưu sản phẩm (thêm hoặc chỉnh sửa)
- * 
- * TÁC DỤNG:
- *   - Kiểm tra form có hợp lệ không
- *   - Lấy dữ liệu từ các input
- *   - Gọi API thêm hoặc sửa sản phẩm
- *   - Đóng modal
- *   - Load lại danh sách sản phẩm
- *   - Hiển thị thông báo thành công hoặc lỗi
- * 
- * CÔNG DỤNG:
- *   - Lưu sản phẩm mới hoặc cập nhật sản phẩm cũ
- *   - Gọi từ nút "Lưu Sản Phẩm" trong modal
- * 
- * THAM SỐ: Không có (sử dụng dữ liệu từ form)
- * TRẢ VỀ: Không có
+ * FIX 4: Sửa lỗi xử lý giá khi lưu
  */
 async function saveProduct() {
-  const productForm = document.getElementById("productForm");
-  
-  // Kiểm tra form có hợp lệ
-  if (!productForm || !productForm.checkValidity()) {
-    showToast("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc", "error");
-    return;
-  }
-  
   try {
-    // Lấy dữ liệu từ form
-    const formData = {
-      product_name: document.getElementById("productName")?.value,
-      sku: document.getElementById("productSku")?.value,
-      category: document.getElementById("productCategory")?.value,
-      brand: document.getElementById("productBrand")?.value,
-      price: parseInt(document.getElementById("productPrice")?.value),
-      cost: parseInt(document.getElementById("productCost")?.value),
-      stock: parseInt(document.getElementById("productStock")?.value),
-      stock_alert: parseInt(document.getElementById("productStockAlert")?.value),
-      description: document.getElementById("productDescription")?.value,
-      status: document.querySelector('input[name="productStatus"]:checked')?.value || 'active'
-    };
+    // 1. VALIDATION - Kiểm tra trường bắt buộc
+    const requiredFields = [
+      { id: 'productName', name: 'Tên sản phẩm' },
+      { id: 'productSku', name: 'SKU' },
+      { id: 'productCategory', name: 'Danh mục' },
+      { id: 'productBrand', name: 'Thương hiệu' },
+      { id: 'productPrice', name: 'Giá bán' },
+      { id: 'productStock', name: 'Số lượng tồn' }
+    ];
     
-    let response;
-    
-    if (isEditing && currentProductId) {
-      // Chế độ chỉnh sửa: Gọi API update
-      response = await productAPI.updateProduct(currentProductId, formData);
-      console.log(`✏️ Cập nhật sản phẩm ID: ${currentProductId}`);
-    } else {
-      // Chế độ thêm: Gọi API create
-      response = await productAPI.createProduct(formData);
-      console.log("➕ Thêm sản phẩm mới");
+    for (const field of requiredFields) {
+      const element = document.getElementById(field.id);
+      if (!element || !element.value.trim()) {
+        showToast("Lỗi", `Vui lòng nhập ${field.name}`, "error");
+        element?.focus();
+        return;
+      }
     }
     
-    if (response.success) {
+    // 2. LẤY DỮ LIỆU FORM - Xử lý giá đúng cách
+    const brandSelect = document.getElementById("productBrand");
+    const brandValue = brandSelect.value;
+    
+    let brand_id;
+    if (!isNaN(brandValue) && brandValue !== '') {
+      brand_id = parseInt(brandValue);
+    } else {
+      brand_id = 1;
+    }
+    
+    // FIX QUAN TRỌNG: Xử lý giá đúng cách
+    console.log("🔍 DEBUG - Bắt đầu xử lý giá:");
+    
+    // Lấy giá từ input
+    const priceInputValue = document.getElementById("productPrice").value;
+    const costInputValue = document.getElementById("productCost")?.value || '0';
+    
+    console.log("💰 Giá bán input:", priceInputValue);
+    console.log("💰 Giá nhập input:", costInputValue);
+    
+    // Loại bỏ tất cả ký tự không phải số và dấu chấm thập phân
+    const cleanPrice = priceInputValue.replace(/[^0-9.]/g, '');
+    const cleanCost = costInputValue.replace(/[^0-9.]/g, '');
+    
+    console.log("💰 Giá bán đã clean:", cleanPrice);
+    console.log("💰 Giá nhập đã clean:", cleanCost);
+    
+    // Parse thành số
+    const priceNum = parseFloat(cleanPrice);
+    const costNum = parseFloat(cleanCost);
+    
+    console.log("💰 Giá bán parsed:", priceNum);
+    console.log("💰 Giá nhập parsed:", costNum);
+    
+    // Kiểm tra giá trị hợp lệ
+    if (isNaN(priceNum) || priceNum <= 0) {
+      showToast("Lỗi", "Giá bán phải là số dương hợp lệ", "error");
+      return;
+    }
+    
+    if (isNaN(costNum) || costNum < 0) {
+      showToast("Lỗi", "Giá nhập không hợp lệ", "error");
+      return;
+    }
+    
+    // Kiểm tra giá nhập không quá lớn (phòng trường hợp nhập sai)
+    if (costNum > 10000000000) { // 10 tỷ
+      const confirm = window.confirm(`Giá nhập ${costNum.toLocaleString('vi-VN')}₫ rất cao. Bạn có chắc chắn không?`);
+      if (!confirm) return;
+    }
+    
+    // Tạo formData với giá đã được parse đúng
+    const formData = {
+      product_name: document.getElementById("productName").value.trim(),
+      sku: document.getElementById("productSku").value.trim().toUpperCase(),
+      category: document.getElementById("productCategory").value,
+      brand_id: brand_id,
+      price: priceNum, // Sử dụng số đã parse
+      cost_price: costNum, // Sử dụng số đã parse
+      stock: parseInt(document.getElementById("productStock").value) || 0,
+      description: document.getElementById("productDescription")?.value || '',
+      image: document.getElementById("imageUrl")?.value || '',
+      status: document.querySelector('input[name="productStatus"]:checked')?.value === 'active' ? 'Available' : 'Discontinued'
+    };
+    
+    // Thêm ram và storage nếu có trong form
+    const ramElement = document.getElementById("productRam");
+    const storageElement = document.getElementById("productStorage");
+    if (ramElement && ramElement.value) formData.ram = ramElement.value;
+    if (storageElement && storageElement.value) formData.storage = storageElement.value;
+    
+    console.log("📤 Gửi dữ liệu đến API:", formData);
+    
+    // 3. GỌI API
+    let response;
+    if (isEditing && currentProductId) {
+      console.log(`✏️ Đang cập nhật sản phẩm ID: ${currentProductId}`);
+      response = await productAPI.updateProduct(currentProductId, formData);
+    } else {
+      console.log("➕ Đang thêm sản phẩm mới");
+      response = await productAPI.createProduct(formData);
+    }
+    
+    // 4. XỬ LÝ KẾT QUẢ
+    console.log("📥 Phản hồi từ API:", response);
+    
+    if (response.success || response.status === 'success' || (response.data && response.data.id) || response.id) {
       closeProductModal();
       currentPage = 1;
       await renderProductsTable();
+      await loadStats();
       
       const message = isEditing ? "Đã cập nhật sản phẩm thành công" : "Đã thêm sản phẩm thành công";
       showToast("Thành công", message, "success");
     } else {
-      showToast("Lỗi", response.message || "Không thể lưu sản phẩm", "error");
+      const errorMsg = response.message || response.error || (response.errors ? JSON.stringify(response.errors) : "Không thể lưu sản phẩm");
+      console.error("❌ API Error Details:", errorMsg);
+      showToast("Lỗi", errorMsg, "error");
     }
+    
   } catch (error) {
     console.error("❌ Lỗi khi lưu sản phẩm:", error);
-    showToast("Lỗi", "Không thể lưu sản phẩm", "error");
+    showToast("Lỗi", `Lỗi: ${error.message}`, "error");
   }
 }
 
@@ -842,6 +907,55 @@ function clearAllFilters() {
   currentPage = 1;
   renderProductsTable();
   showToast("Thành công", "Đã xóa tất cả bộ lọc", "success");
+}
+
+// ========== TIỆN ÍCH BỔ SUNG ==========
+
+/**
+ * Setup định dạng giá khi nhập
+ * FIX 5: Cải thiện format để tránh lỗi
+ */
+function setupPriceFormatting() {
+  const priceInput = document.getElementById("productPrice");
+  const costInput = document.getElementById("productCost");
+  
+  // Hàm format khi blur (rời khỏi ô)
+  const formatOnBlur = function(e) {
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    if (value) {
+      const num = parseFloat(value);
+      if (!isNaN(num)) {
+        // Format với dấu phân cách nghìn
+        e.target.value = num.toLocaleString('vi-VN');
+      }
+    }
+  };
+  
+  // Hàm clear format khi focus (vào ô)
+  const clearFormatOnFocus = function(e) {
+    const value = e.target.value.replace(/\./g, '');
+    e.target.value = value;
+  };
+  
+  if (priceInput) {
+    // Xóa event listeners cũ nếu có
+    const newPriceInput = priceInput.cloneNode(true);
+    priceInput.parentNode.replaceChild(newPriceInput, priceInput);
+    
+    // Chỉ format khi blur, không format real-time
+    newPriceInput.addEventListener('blur', formatOnBlur);
+    newPriceInput.addEventListener('focus', clearFormatOnFocus);
+  }
+  
+  if (costInput) {
+    // Xóa event listeners cũ nếu có
+    const newCostInput = costInput.cloneNode(true);
+    costInput.parentNode.replaceChild(newCostInput, costInput);
+    
+    // Chỉ format khi blur, không format real-time
+    newCostInput.addEventListener('blur', formatOnBlur);
+    newCostInput.addEventListener('focus', clearFormatOnFocus);
+  }
 }
 
 // ========== KHỞI TẠO ==========
@@ -859,20 +973,20 @@ async function initializeApp() {
     setupFilterEvents();
     setupPaginationEvents();
     
+    // FIX 6: Tạm thời không sử dụng auto-format để tránh lỗi
+    // setupPriceFormatting(); // COMMENT DÒNG NÀY ĐỂ TRÁNH LỖI
+    
     // ===== SỰ KIỆN MODAL THÊM/SỬA SẢN PHẨM =====
     
-    // Nút thêm sản phẩm
     if (addProductBtn) {
       addProductBtn.addEventListener("click", openAddModal);
     }
     
-    // Nút lưu sản phẩm
     const saveProductBtn = document.getElementById("saveProductBtn");
     if (saveProductBtn) {
       saveProductBtn.addEventListener("click", saveProduct);
     }
     
-    // Nút hủy / đóng modal
     const closeModalBtn = document.getElementById("closeModal");
     const cancelBtn = document.getElementById("cancelBtn");
     const productModal = document.getElementById("productModal");
@@ -884,7 +998,6 @@ async function initializeApp() {
       cancelBtn.addEventListener("click", closeProductModal);
     }
     
-    // Đóng modal khi click bên ngoài
     if (productModal) {
       productModal.addEventListener("click", function(event) {
         if (event.target === productModal) {
@@ -895,13 +1008,11 @@ async function initializeApp() {
     
     // ===== SỰ KIỆN MODAL XÓA SẢN PHẨM =====
     
-    // Nút xóa sản phẩm
     const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
     if (confirmDeleteBtn) {
       confirmDeleteBtn.addEventListener("click", deleteProduct);
     }
     
-    // Nút hủy xóa / đóng modal
     const closeDeleteModalBtn = document.getElementById("closeDeleteModal");
     const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
     const deleteModal = document.getElementById("deleteModal");
@@ -913,7 +1024,6 @@ async function initializeApp() {
       cancelDeleteBtn.addEventListener("click", closeDeleteModal);
     }
     
-    // Đóng modal xóa khi click bên ngoài
     if (deleteModal) {
       deleteModal.addEventListener("click", function(event) {
         if (event.target === deleteModal) {
@@ -922,7 +1032,6 @@ async function initializeApp() {
       });
     }
     
-    // Đóng toast
     const closeToastBtn = document.getElementById("closeToast");
     const toast = document.getElementById("toast");
     if (closeToastBtn && toast) {
