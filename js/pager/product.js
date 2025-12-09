@@ -101,3 +101,154 @@ async function renderProductsTable() {
     showToast("Lỗi", `Không thể tải dữ liệu: ${error.message}`, "error");
   }
 }
+
+/**c\\
+ * Hiển thị danh sách sản phẩm lên bảng
+ */
+function renderProductsList(products) {
+  productsTableBody.innerHTML = "";
+
+  if (!products || products.length === 0) {
+    productsTableBody.innerHTML = `
+      <tr>
+        <td colspan="8">
+          <div class="empty-state">
+            <i class="fas fa-box-open" style="color: #6c757d; font-size: 32px; margin-bottom: 16px;"></i>
+            <h3 style="margin-bottom: 12px;">Không tìm thấy sản phẩm</h3>
+            <p style="color: #6c757d; margin-bottom: 16px;">
+              Không có sản phẩm nào phù hợp với tiêu chí tìm kiếm của bạn.
+            </p>
+            <button class="btn btn-primary" onclick="clearAllFilters()">
+              <i class="fas fa-times"></i> Xóa tất cả bộ lọc
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  products.forEach((product) => {
+    // Chuẩn hóa dữ liệu sản phẩm
+    const productName =
+      product.product_name || product["tên_sản_phẩm"] || "N/A";
+    const categoryText = getCategoryText(
+      product.category || product["danh_mục"]
+    );
+
+    let brandText = "Không xác định";
+    if (product.brand && typeof product.brand === "object") {
+      brandText =
+        product.brand.brand_name || product.brand.name || "Không xác định";
+    } else if (product.brand_name) {
+      brandText = product.brand_name;
+    } else if (product.brand) {
+      brandText = product.brand;
+    }
+
+    const stock = product.stock || product["tồn_kho"] || 0;
+    const stockStatus = getStockStatus(stock);
+
+    // FIX 1: Sửa hàm formatPrice để chắc chắn xử lý đúng
+    const priceValue = product.price || product["giá"] || 0;
+    const formattedPrice = formatPrice(priceValue);
+
+    const sku = product.sku || product["mã_sku"] || "N/A";
+    const image = product.image || product["hình_ảnh"] || null;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><input type="checkbox" class="product-checkbox" data-id="${
+        product.id
+      }"></td>
+      <td>
+        <div class="product-info">
+          <div class="product-image">
+            <img src="${image || "https://via.placeholder.com/50"}" 
+                 alt="${productName}"
+                 onerror="this.src='https://via.placeholder.com/50'">
+          </div>
+          <div class="product-details">
+            <div class="product-name">${productName}</div>
+            <div class="product-sku">SKU: ${sku}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="product-category">${categoryText}</span></td>
+      <td>${brandText}</td>
+      <td class="product-price">${formattedPrice}₫</td>
+      <td>${stock}</td>
+      <td>
+        <span class="stock-status ${stockStatus}">
+          ${getStockStatusText(stockStatus)}
+        </span>
+      </td>
+      <td>
+        <div class="product-actions">
+          <button class="action-btn view" onclick="viewProduct(${
+            product.id
+          })" title="Xem chi tiết">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button class="action-btn edit" onclick="editProduct(${
+            product.id
+          })" title="Chỉnh sửa">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="action-btn delete" onclick="showDeleteModal(${
+            product.id
+          }, '${escapeHtml(productName)}')" title="Xóa">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    `;
+    productsTableBody.appendChild(row);
+  });
+}
+
+// ========== HÀM ĐỊNH DẠNG ==========
+
+/** Định dạng giá tiền: 25490000 → "25.490.000" */
+function formatPrice(price) {
+  if (!price || isNaN(price)) return "0";
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+/** Chuyển mã danh mục thành tên tiếng Việt */
+function getCategoryText(category) {
+  const categoryMap = {
+    smartphone: "Điện thoại",
+    tablet: "Máy tính bảng",
+    accessory: "Phụ kiện",
+    watch: "Đồng hồ thông minh",
+    laptop: "Laptop",
+  };
+  return categoryMap[category] || category;
+}
+
+/** Xác định trạng thái kho hàng */
+function getStockStatus(stock) {
+  if (stock === undefined || stock === null) return "unknown";
+  if (stock === 0) return "out-of-stock";
+  if (stock <= 5) return "low-stock";
+  return "in-stock";
+}
+
+/** Chuyển mã trạng thái thành text tiếng Việt */
+function getStockStatusText(status) {
+  const statusMap = {
+    "in-stock": "Còn hàng",
+    "low-stock": "Sắp hết",
+    "out-of-stock": "Hết hàng",
+    unknown: "Không xác định",
+  };
+  return statusMap[status] || status;
+}
+
+/** Escape HTML để tránh XSS */
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
