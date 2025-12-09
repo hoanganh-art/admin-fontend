@@ -633,28 +633,44 @@ function showToast(title, message, type = "success") {
  * TRẢ VỀ: Không có
  */
 function openAddModal() {
+  console.log("📝 openAddModal() - Mở modal thêm sản phẩm");
+  
   const productModal = document.getElementById("productModal");
   const modalTitle = document.getElementById("modalTitle");
   const productForm = document.getElementById("productForm");
   
   if (!productModal) {
-    console.error("Không tìm thấy modal sản phẩm");
+    console.error("❌ Không tìm thấy #productModal");
+    showToast("Lỗi", "Không tìm thấy modal", "error");
     return;
   }
   
+  console.log("✅ Tìm thấy productModal:", productModal);
+  
   // Reset form
-  if (productForm) productForm.reset();
+  if (productForm) {
+    productForm.reset();
+    console.log("✅ Reset form");
+  } else {
+    console.warn("⚠️ Không tìm thấy productForm");
+  }
   
   // Cập nhật tiêu đề
-  if (modalTitle) modalTitle.textContent = "Thêm Sản Phẩm Mới";
+  if (modalTitle) {
+    modalTitle.textContent = "Thêm Sản Phẩm Mới";
+    console.log("✅ Cập nhật tiêu đề");
+  }
   
   // Đánh dấu chế độ thêm
   isEditing = false;
   currentProductId = null;
+  console.log("✅ Đánh dấu chế độ: isEditing = false");
   
   // Hiển thị modal
   productModal.classList.add("active");
-  console.log("✅ Mở modal thêm sản phẩm");
+  console.log("✅ Thêm class 'active' vào modal");
+  console.log("Modal classes:", productModal.className);
+  console.log("Modal display:", window.getComputedStyle(productModal).display);
 }
 
 /**
@@ -677,21 +693,27 @@ function openAddModal() {
  * TRẢ VỀ: Không có
  */
 function openEditModal(productData) {
+  console.log("✏️ openEditModal() - Mở modal chỉnh sửa sản phẩm");
+  console.log("📦 Dữ liệu sản phẩm nhận được:", productData);
+  
   const productModal = document.getElementById("productModal");
   const modalTitle = document.getElementById("modalTitle");
   const productForm = document.getElementById("productForm");
   
   if (!productModal) {
-    console.error("Không tìm thấy modal sản phẩm");
+    console.error("❌ Không tìm thấy #productModal");
     return;
   }
   
   // Cập nhật tiêu đề
-  if (modalTitle) modalTitle.textContent = "Chỉnh Sửa Sản Phẩm";
+  if (modalTitle) {
+    modalTitle.textContent = "Chỉnh Sửa Sản Phẩm";
+  }
   
   // Đánh dấu chế độ chỉnh sửa
   isEditing = true;
   currentProductId = productData.id;
+  console.log(`✅ Chế độ chỉnh sửa: productId = ${currentProductId}`);
   
   // Điền dữ liệu vào form
   const fields = {
@@ -719,6 +741,7 @@ function openEditModal(productData) {
       } else {
         element.value = productData[dataKey];
       }
+      console.log(`  ✅ Điền ${fieldId} = ${productData[dataKey]}`);
     }
   });
   
@@ -730,7 +753,7 @@ function openEditModal(productData) {
   
   // Hiển thị modal
   productModal.classList.add("active");
-  console.log(`✅ Mở modal chỉnh sửa sản phẩm ID: ${productData.id}`);
+  console.log("✅ Hiển thị modal chỉnh sửa");
 }
 
 /**
@@ -782,54 +805,145 @@ function closeProductModal() {
 async function saveProduct() {
   const productForm = document.getElementById("productForm");
   
-  // Kiểm tra form có hợp lệ
-  if (!productForm || !productForm.checkValidity()) {
-    showToast("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc", "error");
+  if (!productForm) {
+    console.error("❌ Không tìm thấy form sản phẩm");
+    showToast("Lỗi", "Không tìm thấy form", "error");
+    return;
+  }
+  
+  // Lấy dữ liệu từ form
+  const productName = document.getElementById("productName")?.value?.trim();
+  const sku = document.getElementById("productSku")?.value?.trim();
+  const category = document.getElementById("productCategory")?.value?.trim();
+  const brand = document.getElementById("productBrand")?.value?.trim();
+  const priceStr = document.getElementById("productPrice")?.value?.trim();
+  const costStr = document.getElementById("productCost")?.value?.trim();
+  const stockStr = document.getElementById("productStock")?.value?.trim();
+  const stockAlertStr = document.getElementById("productStockAlert")?.value?.trim();
+  const description = document.getElementById("productDescription")?.value?.trim();
+  const status = document.querySelector('input[name="productStatus"]:checked')?.value || 'active';
+  
+  // Kiểm tra dữ liệu bắt buộc
+  if (!productName || !sku || !category || !brand || !priceStr || !costStr || !stockStr) {
+    showToast("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc (*)", "error");
+    console.warn("⚠️ Dữ liệu thiếu:", { productName, sku, category, brand, priceStr, costStr, stockStr });
     return;
   }
   
   try {
-    // Lấy dữ liệu từ form
-    const formData = {
-      product_name: document.getElementById("productName")?.value,
-      sku: document.getElementById("productSku")?.value,
-      category: document.getElementById("productCategory")?.value,
-      brand: document.getElementById("productBrand")?.value,
-      price: parseInt(document.getElementById("productPrice")?.value),
-      cost: parseInt(document.getElementById("productCost")?.value),
-      stock: parseInt(document.getElementById("productStock")?.value),
-      stock_alert: parseInt(document.getElementById("productStockAlert")?.value),
-      description: document.getElementById("productDescription")?.value,
-      status: document.querySelector('input[name="productStatus"]:checked')?.value || 'active'
+    // Chuyển đổi dữ liệu số
+    const price = parseInt(priceStr) || 0;
+    const cost = parseInt(costStr) || 0;
+    const stock = parseInt(stockStr) || 0;
+    const stockAlert = parseInt(stockAlertStr) || 5;
+    
+    // Lấy giá trị status từ radio button
+    let statusValue = document.querySelector('input[name="productStatus"]:checked')?.value || 'active';
+    
+    // Map giá trị status sang format backend chấp nhận
+    // Nếu backend chỉ chấp nhận 1 hoặc 0, thay đổi dòng dưới
+    const statusMap = {
+      'active': 'active',      // Thay thành 1 nếu backend chỉ chấp nhận 1/0
+      'inactive': 'inactive',  // Thay thành 0 nếu backend chỉ chấp nhận 1/0
+      'draft': 'draft'
     };
+    
+    statusValue = statusMap[statusValue] || 'active'; // Default về 'active' nếu không match
+    
+    // Tạo object dữ liệu gửi lên API
+    const formData = {
+      product_name: productName,
+      sku: sku,
+      category: category,
+      brand: brand,
+      price: price,
+      cost: cost,
+      stock: stock,
+      stock_alert: stockAlert,
+      description: description || null,
+      status: statusValue
+    };
+    
+    console.log("📦 Dữ liệu sẽ gửi:", formData);
+    console.log("📝 Chế độ:", isEditing ? "Chỉnh sửa" : "Thêm mới");
+    console.log("📌 Status value:", statusValue);
     
     let response;
     
     if (isEditing && currentProductId) {
       // Chế độ chỉnh sửa: Gọi API update
-      response = await productAPI.updateProduct(currentProductId, formData);
       console.log(`✏️ Cập nhật sản phẩm ID: ${currentProductId}`);
+      
+      // Kiểm tra xem API method có tồn tại không
+      if (typeof productAPI.updateProduct !== 'function') {
+        console.error("❌ API method updateProduct không tồn tại");
+        showToast("Lỗi", "API updateProduct chưa được implement", "error");
+        return;
+      }
+      
+      response = await productAPI.updateProduct(currentProductId, formData);
     } else {
       // Chế độ thêm: Gọi API create
-      response = await productAPI.createProduct(formData);
       console.log("➕ Thêm sản phẩm mới");
+      
+      // Kiểm tra xem API method có tồn tại không
+      if (typeof productAPI.createProduct !== 'function') {
+        console.error("❌ API method createProduct không tồn tại");
+        showToast("Lỗi", "API createProduct chưa được implement", "error");
+        return;
+      }
+      
+      response = await productAPI.createProduct(formData);
     }
     
-    if (response.success) {
+    console.log("📨 Response từ API:", response);
+    
+    if (response && response.success) {
       closeProductModal();
       currentPage = 1;
       await renderProductsTable();
       
       const message = isEditing ? "Đã cập nhật sản phẩm thành công" : "Đã thêm sản phẩm thành công";
       showToast("Thành công", message, "success");
+      console.log("✅ " + message);
     } else {
-      showToast("Lỗi", response.message || "Không thể lưu sản phẩm", "error");
+      const errorMsg = response?.message || "Không thể lưu sản phẩm";
+      showToast("Lỗi", errorMsg, "error");
+      console.error("❌ Lỗi từ API:", response);
     }
   } catch (error) {
-    console.error("❌ Lỗi khi lưu sản phẩm:", error);
-    showToast("Lỗi", "Không thể lưu sản phẩm", "error");
+    // Xử lý lỗi chi tiết
+    console.error("💥 Lỗi khi lưu sản phẩm:", error.message);
+    
+    let errorMessage = error.message || "Không thể lưu sản phẩm";
+    
+    // Nếu là lỗi HTTP 422 (Validation Error)
+    if (error.status === 422) {
+      console.error("📋 Chi tiết lỗi validation:", error.data);
+      
+      // Hiển thị lỗi validation từ backend
+      if (error.data?.data?.errors) {
+        const validationErrors = error.data.data.errors;
+        console.error("Validation errors:", validationErrors);
+        
+        // Format lỗi validation để hiển thị
+        const errorList = Object.entries(validationErrors)
+          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+          .join('\n');
+        
+        errorMessage = `Lỗi validation:\n${errorList}`;
+      }
+    }
+    
+    showToast("Lỗi", errorMessage, "error");
+    console.error("Error details:", {
+      status: error.status,
+      message: error.message,
+      data: error.data
+    });
   }
 }
+
 
 /** Xóa tất cả filter */
 function clearAllFilters() {
@@ -922,7 +1036,7 @@ async function initializeApp() {
       });
     }
     
-    // Đóng toast
+  // Đóng toast
     const closeToastBtn = document.getElementById("closeToast");
     const toast = document.getElementById("toast");
     if (closeToastBtn && toast) {
@@ -931,8 +1045,19 @@ async function initializeApp() {
       });
     }
     
+    console.log("🎉 ===== ỨNG DỤNG ĐÃ KHỞI TẠO THÀNH CÔNG =====");
+    console.log("📝 Các hàm có sẵn:");
+    console.log("  - saveProduct() - Lưu sản phẩm");
+    console.log("  - openAddModal() - Mở modal thêm");
+    console.log("  - openEditModal(data) - Mở modal sửa");
+    console.log("  - closeProductModal() - Đóng modal");
+    console.log("  - deleteProduct() - Xóa sản phẩm");
+    console.log("  - renderProductsTable() - Reload bảng");
+    console.log("=".repeat(50));
+    
     showToast("Thành công", "Ứng dụng đã sẵn sàng", "success");
   } catch (error) {
+    console.error("❌ Lỗi khi khởi tạo ứng dụng:", error);
     showToast("Lỗi", "Không thể khởi tạo ứng dụng", "error");
   }
 }

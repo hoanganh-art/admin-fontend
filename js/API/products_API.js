@@ -32,11 +32,13 @@ class ProductAPIService {
 
   async request(endpoint, options = {}) {
     try {
-
        // Tạo URL đầy đủ bằng cách nối baseUrl và endpoint
       const url = `${this.baseUrl}${endpoint}`;
 
-      console.log("Requesting URL:", url); // Debug: In ra URL được gọi
+      console.log("🔗 Requesting URL:", url); // Debug: In ra URL được gọi
+      if (options.body) {
+        console.log("📦 Request body:", JSON.parse(options.body));
+      }
 
       // Gửi request tới server bằng fetch API
       const response = await fetch(url, {
@@ -44,13 +46,64 @@ class ProductAPIService {
         headers: { ...this.headers, ...options.headers }, // Kết hợp headers mặc định và tùy chọn
       });
       
+      // Lấy dữ liệu từ response (có thể là JSON hoặc text)
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        // Nếu response không phải JSON, lấy text
+        data = await response.text();
+      }
+      
       // Kiểm tra nếu response không thành công (status code không trong khoảng 200-299)
       if (!response.ok) {
-        //Ném lỗi với thông tin status code
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Xử lý các lỗi HTTP khác nhau
+        const errorObj = {
+          status: response.status,
+          statusText: response.statusText,
+          url: url,
+          message: data?.message || data?.error || response.statusText,
+          data: data
+        };
+        
+        console.error("❌ HTTP Error!", errorObj);
+        
+        // Tạo error message chi tiết dựa trên status code
+        let userMessage = "";
+        switch (response.status) {
+          case 400:
+            userMessage = "Yêu cầu không hợp lệ";
+            break;
+          case 401:
+            userMessage = "Không có quyền truy cập";
+            break;
+          case 403:
+            userMessage = "Bị cấm truy cập";
+            break;
+          case 404:
+            userMessage = "Không tìm thấy tài nguyên";
+            break;
+          case 422:
+            userMessage = `Dữ liệu không hợp lệ: ${errorObj.message}`;
+            if (data?.errors) {
+              console.error("📋 Validation errors:", data.errors);
+              userMessage += "\nLỗi chi tiết: " + JSON.stringify(data.errors);
+            }
+            break;
+          case 500:
+            userMessage = "Lỗi server (500)";
+            break;
+          default:
+            userMessage = `Lỗi HTTP ${response.status}: ${response.statusText}`;
+        }
+        
+        const error = new Error(userMessage);
+        error.status = response.status;
+        error.data = errorObj;
+        throw error;
       }
+      
       // Trả về dữ liệu JSON từ response
-      const data = await response.json();
       console.log('✅ API response:', data); // Log dữ liệu nhận được
       console.log('Response structure check:', {
         isArray: Array.isArray(data),
@@ -62,9 +115,14 @@ class ProductAPIService {
       return data;
 
     } catch (error) {
-      // Bắt lỗi và log ra console
-      console.error("API Error:", error);
-      //Ném lỗi để xử lý ở nơi gọi hàm
+      // Bắt lỗi và log ra console với chi tiết
+      console.error("💥 API Error:", error.message);
+      console.error("Error details:", {
+        status: error.status,
+        data: error.data
+      });
+      
+      // Ném lỗi để xử lý ở nơi gọi hàm
       throw error;
     }
   }
