@@ -211,8 +211,8 @@ function renderProductsList(products) {
 
 /** Định dạng giá tiền: 25490000 → "25.490.000" */
 function formatPrice(price) {
-  if (!price || isNaN(price)) return "0";
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  if (!price || isNaN(price)) return "0"; // Trả về "0" nếu giá không hợp lệ
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); // Thêm dấu chấm phân cách hàng nghìn
 }
 
 /** Chuyển mã danh mục thành tên tiếng Việt */
