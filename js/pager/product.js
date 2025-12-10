@@ -1100,6 +1100,19 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 });
 
+//========sidebar===========/
+//Khởi tạo biến
+const toggleSidebar = document.getElementById('toggleSidebar'); // khởi tạo biến sidebar
+
+toggleSidebar.addEventListener("click", function () {
+  document.querySelector(".sidebar").classList.toggle("collapsed");
+  const icon = this.querySelector("i");
+  icon.style.transform = "rotate(180deg)";
+  setTimeout(() => {
+    icon.style.transform = "";
+  }, 300);
+});
+
 // Xuất hàm ra global scope
 window.viewProduct = viewProduct;
 window.editProduct = editProduct;
