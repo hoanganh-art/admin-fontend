@@ -30,7 +30,6 @@ toggleSidebar.addEventListener('click', function () {
 // ========== MENU ACTIVE STATE ==========
 menuItems.forEach(item => {
     item.addEventListener('click', function (e) {
-        e.preventDefault();
         menuItems.forEach(i => i.classList.remove('active'));
         this.classList.add('active');
 
@@ -55,6 +54,14 @@ menuItems.forEach(item => {
 
         this.appendChild(ripple);
         setTimeout(() => ripple.remove(), 600);
+
+        // Điều hướng tới trang
+        const href = this.getAttribute('href');
+        if (href) {
+            setTimeout(() => {
+                window.location.href = href;
+            }, 300);
+        }
     });
 });
 

@@ -23,45 +23,45 @@
             </div>
 
             <div class="sidebar-menu">
-                <a href="dashboard.html" class="menu-item">
+                <a href="/index.html" class="menu-item">
                     <i class="fas fa-tachometer-alt"></i>
                     <span class="menu-text">Dashboard</span>
                 </a>
-                <a href="#" class="menu-item active">
+                <a href="products.html" class="menu-item active">
                     <i class="fas fa-box"></i>
                     <span class="menu-text">Sản Phẩm</span>
                     <span class="menu-badge">86</span>
                 </a>
-                <a href="orders.html" class="menu-item">
+                <a href="order.html" class="menu-item">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="menu-text">Đơn Hàng</span>
                     <span class="menu-badge">5</span>
                 </a>
-                <a href="customers.html" class="menu-item">
+                <a href="/customers.html" class="menu-item">
                     <i class="fas fa-users"></i>
                     <span class="menu-text">Khách Hàng</span>
                 </a>
-                <a href="staff.html" class="menu-item">
+                <a href="/staff.html" class="menu-item">
                     <i class="fas fa-user-tie"></i>
                     <span class="menu-text">Nhân Viên</span>
                 </a>
-                <a href="inventory.html" class="menu-item">
+                <a href="/inventory.html" class="menu-item">
                     <i class="fas fa-warehouse"></i>
                     <span class="menu-text">Kho Hàng</span>
                 </a>
-                <a href="reports.html" class="menu-item">
+                <a href="/reports.html" class="menu-item">
                     <i class="fas fa-chart-line"></i>
                     <span class="menu-text">Báo Cáo</span>
                 </a>
-                <a href="promotions.html" class="menu-item">
+                <a href="/promotions.html" class="menu-item">
                     <i class="fas fa-tags"></i>
                     <span class="menu-text">Khuyến Mãi</span>
                 </a>
-                <a href="suppliers.html" class="menu-item">
+                <a href="/suppliers.html" class="menu-item">
                     <i class="fas fa-truck"></i>
                     <span class="menu-text">Nhà Cung Cấp</span>
                 </a>
-                <a href="settings.html" class="menu-item">
+                <a href="/settings.html" class="menu-item">
                     <i class="fas fa-cog"></i>
                     <span class="menu-text">Cài Đặt</span>
                 </a>
@@ -393,17 +393,16 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">
+                        <label class="form-label" for="productImageUrl">
                             <i class="fas fa-image"></i>
-                            Hình Ảnh Sản Phẩm
+                            URL Hình Ảnh Sản Phẩm
                         </label>
-                        <div class="image-upload" id="imageUpload">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Kéo thả hình ảnh vào đây hoặc click để tải lên</p>
-                            <span>Hỗ trợ: JPG, PNG, GIF (tối đa 5MB)</span>
-                        </div>
+                        <input type="url" class="form-control" id="productImageUrl" placeholder="VD: https://example.com/image.jpg">
+                        <small style="color: #6c757d; display: block; margin-top: 8px;">
+                            <i class="fas fa-info-circle"></i> Nhập đường dẫn URL của ảnh sản phẩm
+                        </small>
                         <div id="imagePreview" style="display: none; margin-top: 16px;">
-                            <img src="" alt="Preview" style="max-width: 200px; border-radius: 8px;">
+                            <img src="" alt="Preview" style="max-width: 200px; border-radius: 8px; border: 1px solid #dee2e6;">
                         </div>
                     </div>
 
