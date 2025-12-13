@@ -923,6 +923,21 @@ async function viewProduct(productId) {
       product = response.data;
     }
     
+    // Chuyển đổi trạng thái sang tiếng Việt
+    const getStatusText = (status) => {
+      const statusMap = {
+        'Available': 'Đang bán',
+        'Unavailable': 'Ngừng bán',
+        'Discontinued': 'Ngừng kinh doanh',
+        'active': 'Đang bán',
+        'inactive': 'Ngừng bán',
+        'draft': 'Bản nháp',
+        '1': 'Đang bán',
+        '0': 'Ngừng bán'
+      };
+      return statusMap[status] || status || 'Không xác định';
+    };
+    
     alert(`
       📱 THÔNG TIN SẢN PHẨM
       ---------------------
@@ -934,7 +949,7 @@ async function viewProduct(productId) {
       Giá: ${formatPrice(product.price)}₫
       Giá vốn: ${formatPrice(product.cost_price || product.cost)}₫
       Tồn kho: ${product.stock || 0}
-      Trạng thái: ${product.status || 'active'}
+      Trạng thái: ${getStatusText(product.status)}
       Mô tả: ${product.description || 'Không có'}
     `);
   } catch (error) {
@@ -1304,10 +1319,9 @@ async function saveProduct() {
       return;
     }
     
-    // Lấy giá trị status từ radio button
-    let statusValue = document.querySelector('input[name="productStatus"]:checked')?.value || 'active';
-    const allowedStatuses = ['active', 'inactive', 'draft'];
-    statusValue = allowedStatuses.includes(statusValue) ? statusValue : 'active';
+    // Lấy giá trị status - GIỮ NGUYÊN KHÔNG CHUYỂN ĐỔI
+    let statusValue = document.querySelector('input[name="productStatus"]:checked')?.value || 'Available';
+    console.log("🔍 Status gửi lên:", statusValue, "(Type:", typeof statusValue, ")");
     
     // Tạo object dữ liệu gửi lên API - QUAN TRỌNG: KHỚP VỚI DB SCHEMA
     const formData = {
