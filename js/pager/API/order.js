@@ -7,23 +7,22 @@
 // 📍 Địa chỉ backend server - THAY ĐỔI PORT NÀY THEO SERVER CỦA BẠN
 // Mặc định Laravel: http://localhost:8000
 // Nếu bạn chạy `php artisan serve --port=6346` thì dùng port 6346
-const API_BASE_URL = "http://127.0.0.1:6346/api"; // ❗ SỬA PORT NẾU CẦN
+const API_BASE_URL = "http://127.0.0.1:6346"; // ❗ SỬA PORT NẾU CẦN
 
 // 📋 Danh sách các API endpoints - KHỚP VỚI routes trong api.php
 const API_ENDPOINTS = {
   // 🛒 ĐƠN HÀNG (Endpoints chính)
-  orders: "/orders", // GET: Lấy danh sách, POST: Tạo mới
-  orderDetail: (id) => `/orders/${id}`, // GET: Chi tiết, PUT: Sửa, DELETE: Xóa
-  orderStatus: (id) => `/orders/${id}/status`, // PUT: Cập nhật trạng thái
-  ordersStats: "/orders/stats", // GET: Thống kê đơn hàng
+  orders: "/api/invoices", // GET: Lấy danh sách, POST: Tạo mới
+  orderDetail: (id) => `/api/invoices/${id}`, // GET: Chi tiết, PUT: Sửa, DELETE: Xóa
+  orderStatus: (id) => `/api/invoices/${id}/status`, // PUT: Cập nhật trạng thái
+  ordersStats: "/api/invoices/stats", // GET: Thống kê đơn hàng
 
   // 👥 KHÁCH HÀNG & NHÂN VIÊN (Để hiển thị thông tin)
-  customers: "/customers", // GET: Danh sách khách hàng
-  employees: "/employees", // GET: Danh sách nhân viên
-
+  customers: "/api/customers", // GET: Danh sách khách hàng
+  employees: "/api/employees", // GET: Danh sách nhân viên
   // 📱 SẢN PHẨM (Để hiển thị trong chi tiết đơn)
-  products: "/products", // GET: Danh sách sản phẩm
-  productDetail: (id) => `/products/${id}`, // GET: Chi tiết sản phẩm
+  products: "/api/products", // GET: Danh sách sản phẩm
+  productDetail: (id) => `/api/products/${id}`, // GET: Chi tiết sản phẩm
 };
 
 // ========== LỚP API SERVICE ==========
@@ -161,23 +160,51 @@ class OrderAPIService {
   /**
    * 🔄 Cập nhật trạng thái đơn hàng
    * @param {number|string} id - ID đơn hàng
-   * @param {string} status - Trạng thái mới
+   * @param {string} status - Trạng thái mới (paid, unpaid, pending)
    * @param {string} note - Ghi chú (tùy chọn)
    * @returns {Promise} - Kết quả cập nhật trạng thái
    */
   async updateOrderStatus(id, status, note = "") {
     console.log(`🔄 Updating status for order ${id} to: ${status}`);
-    // Thử 2 cách:
-    // 1. /orders/{id}/status (nếu backend có endpoint riêng)
-    // 2. /orders/{id} với dữ liệu {status, note} (cách chung)
 
-    const requestBody = { status, note };
-    console.log(`📤 Request body:`, requestBody);
+    // Chuẩn hóa status về enum hợp lệ
+    const normalizedStatus = (status || "").toString().trim().toLowerCase();
+    const allowedStatuses = ["paid", "unpaid", "pending"];
+    const finalStatus = allowedStatuses.includes(normalizedStatus)
+      ? normalizedStatus
+      : "pending";
 
-    // Thử dùng endpoint chung /orders/{id} thay vì /orders/{id}/status
+    // Backend chỉ hỗ trợ PUT (cần full data), không hỗ trợ PATCH
+    // Bước 1: Lấy thông tin đơn hàng hiện tại
+    const currentOrder = await this.getOrderById(id);
+    console.log(`📥 Current order data:`, currentOrder);
+
+    // Lấy dữ liệu từ response
+    let orderData = currentOrder;
+    if (currentOrder.success && currentOrder.data) {
+      orderData = currentOrder.data;
+    } else if (currentOrder.data) {
+      orderData = currentOrder.data;
+    }
+
+    // Bước 2: Merge status mới vào dữ liệu hiện tại
+    const updatedData = {
+      customer_id: orderData.customer_id,
+      employee_id: orderData.employee_id,
+      invoice_date: orderData.invoice_date,
+      subtotal: orderData.subtotal,
+      discount: orderData.discount,
+      total_amount: orderData.total_amount,
+      payment_method: orderData.payment_method || "cash",
+      status: finalStatus // Status mới đã chuẩn hóa
+    };
+
+    console.log(`📤 Updated order data:`, updatedData);
+
+    // Bước 3: Gửi PUT request với full data
     return this.request(API_ENDPOINTS.orderDetail(id), {
       method: "PUT",
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(updatedData),
     });
   }
 
@@ -1152,8 +1179,17 @@ async function saveOrderStatus() {
   console.log("🔍 Debug saveOrderStatus:");
   console.log("Order ID:", currentOrderId);
   console.log("New Status:", newStatus);
+  console.log("New Status length:", newStatus.length);
+  console.log("New Status type:", typeof newStatus);
+  console.log("New Status (JSON):", JSON.stringify(newStatus));
   console.log("Note:", note);
-  console.log("API Endpoint:", API_ENDPOINTS.orderStatus(currentOrderId));
+
+  // Validate status trước khi gửi - KHỚP VỚI MIGRATION
+  const validStatuses = ['paid', 'unpaid', 'pending'];
+  if (!validStatuses.includes(newStatus)) {
+    showToast("Lỗi", `Trạng thái không hợp lệ: "${newStatus}". Chỉ chấp nhận: ${validStatuses.join(', ')}`, "error");
+    return;
+  }
 
   try {
     // Gọi API cập nhật trạng thái
