@@ -823,8 +823,9 @@ function displayOrderDetailModal(order) {
   const customerEmail = customer.email || "N/A";
   const customerAddress = customer.address || "N/A";
   
+  // Thông tin nhân viên hỗ trợ đơn hàng
   const employee = order.employee || {};
-  const employeeName = employee.name || employee.employee_name || "Không xác định";
+  const employeeName = employee.full_name || employee.name || employee.employee_name || "Không xác định";
   
   const paymentMethod = order.payment_method || "cod";
   const paymentText = getPaymentMethodText(paymentMethod);
@@ -906,10 +907,11 @@ function displayOrderDetailModal(order) {
     </div>
     
     <div class="order-detail-section">
-      <h4>Thông Tin Nhân Viên Xử Lý</h4>
+      <h4>Nhân Viên Hỗ Trợ</h4>
       <div class="detail-grid">
+        <!-- Tên nhân viên -->
         <div class="detail-item">
-          <span class="detail-label">Nhân viên:</span>
+          <span class="detail-label">Tên nhân viên:</span>
           <span class="detail-value">${employeeName}</span>
         </div>
       </div>
