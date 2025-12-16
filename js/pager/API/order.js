@@ -7,23 +7,23 @@
 // 📍 Địa chỉ backend server - THAY ĐỔI PORT NÀY THEO SERVER CỦA BẠN
 // Mặc định Laravel: http://localhost:8000
 // Nếu bạn chạy `php artisan serve --port=6346` thì dùng port 6346
-const API_BASE_URL = "http://127.0.0.1:6346"; // ❗ SỬA PORT NẾU CẦN
+const API_BASE_URL = "http://127.0.0.1:6346/api"; // ❗ SỬA PORT NẾU CẦN
 
 // 📋 Danh sách các API endpoints - KHỚP VỚI routes trong api.php
 const API_ENDPOINTS = {
   // 🛒 ĐƠN HÀNG (Endpoints chính)
-  orders: "/api/orders",                      // GET: Lấy danh sách, POST: Tạo mới
-  orderDetail: (id) => `/api/orders/${id}`,   // GET: Chi tiết, PUT: Sửa, DELETE: Xóa
-  orderStatus: (id) => `/api/orders/${id}/status`, // PUT: Cập nhật trạng thái
-  ordersStats: "/api/orders/stats",           // GET: Thống kê đơn hàng
+  orders: "/orders",                      // GET: Lấy danh sách, POST: Tạo mới
+  orderDetail: (id) => `/orders/${id}`,   // GET: Chi tiết, PUT: Sửa, DELETE: Xóa
+  orderStatus: (id) => `/orders/${id}/status`, // PUT: Cập nhật trạng thái
+  ordersStats: "/orders/stats",           // GET: Thống kê đơn hàng
   
   // 👥 KHÁCH HÀNG & NHÂN VIÊN (Để hiển thị thông tin)
-  customers: "/api/customers",                // GET: Danh sách khách hàng
-  employees: "/api/employees",                // GET: Danh sách nhân viên
+  customers: "/customers",                // GET: Danh sách khách hàng
+  employees: "/employees",                // GET: Danh sách nhân viên
   
   // 📱 SẢN PHẨM (Để hiển thị trong chi tiết đơn)
-  products: "/api/products",                  // GET: Danh sách sản phẩm
-  productDetail: (id) => `/api/products/${id}`, // GET: Chi tiết sản phẩm
+  products: "/products",                  // GET: Danh sách sản phẩm
+  productDetail: (id) => `/products/${id}`, // GET: Chi tiết sản phẩm
 };
 
 // ========== LỚP API SERVICE ==========
@@ -1038,20 +1038,31 @@ async function showUpdateStatusModal(orderId) {
  * 💾 Lưu trạng thái mới
  */
 async function saveOrderStatus() {
-  if (!currentOrderId) return;
+  if (!currentOrderId) {
+    console.error("❌ No order ID");
+    return;
+  }
   
   const newStatusSelect = document.getElementById("newStatusSelect");
   const statusNote = document.getElementById("statusNote");
   
-  if (!newStatusSelect) return;
+  if (!newStatusSelect) {
+    console.error("❌ Status select element not found");
+    return;
+  }
   
   const newStatus = newStatusSelect.value;
   const note = statusNote ? statusNote.value.trim() : '';
   
   try {
     console.log(`💾 Saving new status for order ${currentOrderId}: ${newStatus}`);
+    console.log(`📝 Note: ${note}`);
+    console.log(`🔄 Calling orderAPI.updateOrderStatus(${currentOrderId}, '${newStatus}', '${note}')`);
     
-    await orderAPI.updateOrderStatus(currentOrderId, newStatus, note);
+    // Gọi API cập nhật trạng thái
+    const response = await orderAPI.updateOrderStatus(currentOrderId, newStatus, note);
+    
+    console.log('✅ Update response:', response);
     
     // Đóng modal
     closeUpdateStatusModal();
@@ -1064,6 +1075,9 @@ async function saveOrderStatus() {
     
   } catch (error) {
     console.error("❌ Error updating order status:", error);
+    console.error("❌ Error message:", error.message);
+    console.error("❌ Error status:", error.status);
+    console.error("❌ Error data:", error.data);
     showToast("Lỗi", `Không thể cập nhật trạng thái: ${error.message}`, "error");
   }
 }
