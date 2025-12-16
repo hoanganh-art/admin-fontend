@@ -537,74 +537,48 @@ function formatDate(dateString) {
 }
 
 /**
- * 📝 Chuyển mã trạng thái thành text tiếng Việt
- * @param {string} status - Mã trạng thái
+ * 📝 Chuyển mã trạng thái thành text tiếng Việt - KHỚP VỚI MIGRATION
+ * @param {string} status - Mã trạng thái (paid, unpaid, pending)
  * @returns {string} - Tên trạng thái tiếng Việt
  */
 function getStatusText(status) {
   const statusMap = {
-    pending: "Chờ xử lý",
-    processing: "Đang xử lý",
-    shipping: "Đang giao hàng",
-    completed: "Hoàn thành",
-    cancelled: "Đã hủy",
-    paid: "Đã thanh toán",
-    unpaid: "Chưa thanh toán",
+    "paid": "Đã thanh toán",      // Đã thanh toán
+    "unpaid": "Chưa thanh toán",  // Chưa thanh toán
+    "pending": "Chờ xử lý"         // Chờ xử lý
   };
   return statusMap[status] || status;
 }
 
 /**
- * 🎨 Lấy CSS class cho trạng thái
- * @param {string} status - Mã trạng thái
+ * 🎨 Lấy CSS class cho trạng thái - KHỚP VỚI MIGRATION
+ * @param {string} status - Mã trạng thái (paid, unpaid, pending)
  * @returns {string} - CSS class
  */
 function getStatusClass(status) {
   const classMap = {
-    pending: "status-pending",
-    paid: "status-completed", // Đã thanh toán = completed (xanh)
-    unpaid: "status-pending", // Chưa thanh toán = pending (vàng)
+    "paid": "status-completed",      // Đã thanh toán - màu xanh
+    "unpaid": "status-cancelled",    // Chưa thanh toán - màu đỏ
+    "pending": "status-pending"       // Chờ xử lý - màu vàng
   };
   return classMap[status] || "status-pending";
 }
 
 /**
- * 💳 Chuyển mã phương thức thanh toán thành text
- */
-function getPaymentMethodText(method) {
-  if (!method || method === "") {
-    return "Chưa thanh toán";
-  }
-
-  const methodMap = {
-    cash: "Tiền mặt",
-    credit_card: "Thẻ tín dụng",
-    bank_transfer: "Chuyển khoản",
-    cod: "Thanh toán khi nhận hàng",
-    momo: "Ví MoMo",
-    zalopay: "ZaloPay",
-  };
-  return methodMap[method] || method;
-}
-
-/**
- * 💳 Chuyển mã phương thức thanh toán thành text
- * @param {string} method - Mã phương thức
+ * 💳 Chuyển mã phương thức thanh toán thành text - KHỚP VỚI MIGRATION
+ * @param {string} method - Mã phương thức (cash, credit_card, bank_transfer)
  * @returns {string} - Tên phương thức
  */
 function getPaymentMethodText(method) {
   // API có thể trả về empty string
   if (!method || method === "") {
-    return "Chưa thanh toán";
+    return "Chưa xác định";
   }
-
+  
   const methodMap = {
-    cash: "Tiền mặt",
-    credit_card: "Thẻ tín dụng",
-    bank_transfer: "Chuyển khoản",
-    cod: "Thanh toán khi nhận hàng",
-    momo: "Ví MoMo",
-    zalopay: "ZaloPay",
+    "cash": "Tiền mặt",               // Thanh toán tiền mặt
+    "credit_card": "Thẻ tín dụng",    // Thanh toán bằng thẻ
+    "bank_transfer": "Chuyển khoản"   // Chuyển khoản ngân hàng
   };
   return methodMap[method] || method;
 }
