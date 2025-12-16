@@ -167,9 +167,17 @@ class OrderAPIService {
    */
   async updateOrderStatus(id, status, note = "") {
     console.log(`🔄 Updating status for order ${id} to: ${status}`);
-    return this.request(API_ENDPOINTS.orderStatus(id), {
+    // Thử 2 cách:
+    // 1. /orders/{id}/status (nếu backend có endpoint riêng)
+    // 2. /orders/{id} với dữ liệu {status, note} (cách chung)
+
+    const requestBody = { status, note };
+    console.log(`📤 Request body:`, requestBody);
+
+    // Thử dùng endpoint chung /orders/{id} thay vì /orders/{id}/status
+    return this.request(API_ENDPOINTS.orderDetail(id), {
       method: "PUT",
-      body: JSON.stringify({ status, note }),
+      body: JSON.stringify(requestBody),
     });
   }
 
@@ -554,14 +562,29 @@ function getStatusText(status) {
 function getStatusClass(status) {
   const classMap = {
     pending: "status-pending",
-    processing: "status-processing",
-    shipping: "status-shipping",
-    completed: "status-completed",
-    cancelled: "status-cancelled",
-    paid: "status-completed",
-    unpaid: "status-pending",
+    paid: "status-completed", // Đã thanh toán = completed (xanh)
+    unpaid: "status-pending", // Chưa thanh toán = pending (vàng)
   };
   return classMap[status] || "status-pending";
+}
+
+/**
+ * 💳 Chuyển mã phương thức thanh toán thành text
+ */
+function getPaymentMethodText(method) {
+  if (!method || method === "") {
+    return "Chưa thanh toán";
+  }
+
+  const methodMap = {
+    cash: "Tiền mặt",
+    credit_card: "Thẻ tín dụng",
+    bank_transfer: "Chuyển khoản",
+    cod: "Thanh toán khi nhận hàng",
+    momo: "Ví MoMo",
+    zalopay: "ZaloPay",
+  };
+  return methodMap[method] || method;
 }
 
 /**
@@ -1078,6 +1101,9 @@ function closeOrderDetailModal() {
  * ⚙️ Hiển thị modal cập nhật trạng thái
  * @param {number} orderId - ID đơn hàng
  */
+/**
+ * ⚙️ Hiển thị modal cập nhật trạng thái - FIXED
+ */
 async function showUpdateStatusModal(orderId) {
   try {
     console.log(`⚙️ Showing update status modal for order: ${orderId}`);
@@ -1108,8 +1134,18 @@ async function showUpdateStatusModal(orderId) {
     currentStatusDisplay.textContent = statusText;
     currentStatusDisplay.className = `order-status ${statusClass}`;
 
-    // Set giá trị mặc định cho select
-    newStatusSelect.value = status;
+    // ✅ Cập nhật options trong select cho khớp với migration
+    newStatusSelect.innerHTML = `
+      <option value="pending" ${
+        status === "pending" ? "selected" : ""
+      }>Chờ xử lý</option>
+      <option value="paid" ${
+        status === "paid" ? "selected" : ""
+      }>Đã thanh toán</option>
+      <option value="unpaid" ${
+        status === "unpaid" ? "selected" : ""
+      }>Chưa thanh toán</option>
+    `;
 
     // Hiển thị modal
     modal.classList.add("active");
@@ -1120,7 +1156,7 @@ async function showUpdateStatusModal(orderId) {
 }
 
 /**
- * 💾 Lưu trạng thái mới
+ * 💾 Lưu trạng thái mới - FIXED
  */
 async function saveOrderStatus() {
   if (!currentOrderId) {
@@ -1139,15 +1175,13 @@ async function saveOrderStatus() {
   const newStatus = newStatusSelect.value;
   const note = statusNote ? statusNote.value.trim() : "";
 
-  try {
-    console.log(
-      `💾 Saving new status for order ${currentOrderId}: ${newStatus}`
-    );
-    console.log(`📝 Note: ${note}`);
-    console.log(
-      `🔄 Calling orderAPI.updateOrderStatus(${currentOrderId}, '${newStatus}', '${note}')`
-    );
+  console.log("🔍 Debug saveOrderStatus:");
+  console.log("Order ID:", currentOrderId);
+  console.log("New Status:", newStatus);
+  console.log("Note:", note);
+  console.log("API Endpoint:", API_ENDPOINTS.orderStatus(currentOrderId));
 
+  try {
     // Gọi API cập nhật trạng thái
     const response = await orderAPI.updateOrderStatus(
       currentOrderId,
@@ -1156,25 +1190,39 @@ async function saveOrderStatus() {
     );
 
     console.log("✅ Update response:", response);
+    console.log("✅ Response type:", typeof response);
+    console.log("✅ Response.success:", response?.success);
+    console.log("✅ Response.data:", response?.data);
 
-    // Đóng modal
+    // Đóng modal ngay khi API trả về thành công (không có lỗi throw)
     closeUpdateStatusModal();
 
     // Làm mới danh sách
     await renderOrdersTable();
-    await loadOrderStats();
+    
+    // Load stats nếu có hàm
+    if (typeof loadOrderStats === 'function') {
+      await loadOrderStats();
+    }
 
     showToast("Thành công", "Đã cập nhật trạng thái đơn hàng", "success");
+    
   } catch (error) {
     console.error("❌ Error updating order status:", error);
-    console.error("❌ Error message:", error.message);
-    console.error("❌ Error status:", error.status);
-    console.error("❌ Error data:", error.data);
-    showToast(
-      "Lỗi",
-      `Không thể cập nhật trạng thái: ${error.message}`,
-      "error"
-    );
+    console.error("Full error:", error);
+
+    // Hiển thị thông báo lỗi chi tiết hơn
+    let errorMessage = error.message;
+    if (error.data && error.data.message) {
+      errorMessage = error.data.message;
+    }
+    if (error.status === 422 && error.data && error.data.errors) {
+      // Validation errors
+      const errors = Object.values(error.data.errors).flat().join(", ");
+      errorMessage = `Dữ liệu không hợp lệ: ${errors}`;
+    }
+
+    showToast("Lỗi", `Không thể cập nhật trạng thái: ${errorMessage}`, "error");
   }
 }
 
