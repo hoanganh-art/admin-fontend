@@ -157,6 +157,7 @@ let toast = null;
 let toastIcon = null;
 let toastTitle = null;
 let toastMessage = null;
+const toggleSidebar = document.getElementById("toggleSidebar");
 
 // ========== RENDER BẢNG KHÁCH HÀNG TỪ API ==========
 async function renderCustomersTable() {
@@ -1197,6 +1198,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Error initializing app:", error);
     showToast("Lỗi", "Không thể tải dữ liệu ban đầu", "error");
   }
+});
+
+toggleSidebar.addEventListener("click", function () {
+  document.querySelector(".sidebar").classList.toggle("collapsed");
+  const icon = this.querySelector("i");
+  icon.style.transform = "rotate(180deg)";
+  setTimeout(() => {
+    icon.style.transform = "";
+  }, 300);
 });
 
 // ========== EVENT LISTENERS (CẬP NHẬT) ==========
