@@ -53,6 +53,7 @@ body {
     display: flex;
     min-height: 100vh;
     position: relative;
+    overflow-x: hidden; /* Thêm để tránh tràn ngang */
 }
 
 /* Sidebar - Glassmorphism Design */
@@ -234,10 +235,14 @@ body {
     margin-left: var(--sidebar-width);
     transition: var(--transition);
     min-height: 100vh;
+    width: 100%; /* Thêm */
+    max-width: calc(100vw - var(--sidebar-width)); /* Thêm để giới hạn chiều rộng */
+    overflow-x: hidden; /* Thêm */
 }
 
 .sidebar.collapsed~.main-content {
     margin-left: var(--sidebar-collapsed-width);
+    max-width: calc(100vw - var(--sidebar-collapsed-width)); /* Cập nhật */
 }
 
 /* Header - Glassmorphism */
@@ -429,6 +434,8 @@ body {
 /* Nội dung Đơn Hàng */
 .orders-content {
     padding: 32px;
+    max-width: 100%; /* Thêm */
+    overflow-x: hidden; /* Thêm */
 }
 
 /* Page Header với Actions */
@@ -677,6 +684,7 @@ body {
     margin-bottom: 32px;
     box-shadow: var(--box-shadow);
     border: 1px solid var(--glass-border);
+    overflow: hidden; /* Thêm */
 }
 
 .filter-header {
@@ -684,6 +692,8 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap; /* Thêm */
+    gap: 12px; /* Thêm */
 }
 
 .filter-title {
@@ -693,6 +703,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-shrink: 0; /* Thêm */
 }
 
 .filter-title i {
@@ -709,6 +720,7 @@ body {
     align-items: center;
     gap: 6px;
     transition: var(--transition);
+    white-space: nowrap; /* Thêm */
 }
 
 .filter-reset:hover {
@@ -718,20 +730,25 @@ body {
 
 .filter-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Tăng từ 200px lên 220px */
     gap: 20px;
+    width: 100%; /* Thêm */
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0; /* Thêm để tránh overflow */
 }
 
 .filter-label {
     font-size: 14px;
     font-weight: 600;
     color: var(--gray-700);
+    white-space: nowrap; /* Thêm */
+    overflow: hidden; /* Thêm */
+    text-overflow: ellipsis; /* Thêm */
 }
 
 .filter-select,
@@ -742,6 +759,8 @@ body {
     font-size: 15px;
     transition: var(--transition);
     background: white;
+    width: 100%; /* Thêm */
+    min-width: 0; /* Thêm */
 }
 
 .filter-select:focus,
@@ -755,10 +774,17 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    width: 100%; /* Thêm */
+}
+
+.date-range span {
+    white-space: nowrap; /* Thêm */
+    flex-shrink: 0; /* Thêm */
 }
 
 .date-input {
     flex: 1;
+    min-width: 0; /* Thêm */
 }
 
 .filter-actions {
@@ -766,6 +792,100 @@ body {
     gap: 12px;
     margin-top: 20px;
     justify-content: flex-end;
+    flex-wrap: wrap; /* Thêm */
+}
+
+.filter-actions .btn {
+    min-width: 120px; /* Thêm */
+}
+
+/* Responsive cho filter */
+@media (max-width: 992px) {
+    .filter-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 cột trên tablet */
+        gap: 16px;
+    }
+
+    .filter-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .filter-reset {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-container {
+        padding: 20px 16px; /* Giảm padding */
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr; /* 1 cột trên mobile */
+        gap: 16px;
+    }
+
+    .filter-title {
+        font-size: 16px;
+    }
+
+    .date-range {
+        flex-direction: column; /* Stack vertical */
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .date-range span {
+        display: none; /* Ẩn chữ "đến" */
+    }
+
+    .filter-actions {
+        width: 100%;
+        flex-direction: column; /* Stack vertical */
+    }
+
+    .filter-actions .btn {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 576px) {
+    .filter-container {
+        padding: 16px 12px;
+        margin-left: -12px; /* Bù trừ padding của orders-content */
+        margin-right: -12px;
+        border-radius: 0;
+    }
+
+    .filter-header {
+        gap: 8px;
+    }
+
+    .filter-title {
+        font-size: 15px;
+    }
+
+    .filter-title i {
+        font-size: 14px;
+    }
+
+    .filter-select,
+    .filter-input {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .filter-label {
+        font-size: 13px;
+    }
+
+    .filter-reset {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
 }
 
 /* Bảng đơn hàng */
@@ -776,31 +896,15 @@ body {
     padding: 24px;
     box-shadow: var(--box-shadow);
     border: 1px solid var(--glass-border);
-    overflow: hidden;
-}
-
-.table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.table-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-
-.table-info {
-    font-size: 14px;
-    color: var(--gray-600);
+    overflow-x: auto; /* Cho phép scroll ngang khi cần */
+    max-width: 100%; /* Thêm */
 }
 
 .orders-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    min-width: 1000px; /* Thêm để đảm bảo bảng có chiều rộng tối thiểu */
 }
 
 .orders-table th {
@@ -1086,6 +1190,8 @@ body {
     align-items: center;
     justify-content: center;
     animation: fadeIn 0.3s ease;
+    overflow-y: auto; /* Thêm để scroll khi nội dung quá dài */
+    padding: 20px; /* Thêm padding cho modal trên mobile */
 }
 
 @keyframes fadeIn {
@@ -1113,6 +1219,7 @@ body {
     box-shadow: var(--box-shadow-lg);
     border: 1px solid var(--glass-border);
     animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: auto; /* Thêm để center modal */
 }
 
 @keyframes slideUp {
@@ -1166,12 +1273,14 @@ body {
 
 .modal-body {
     padding: 28px;
+    overflow-x: hidden; /* Thêm */
 }
 
 .order-detail-container {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 32px;
+    max-width: 100%; /* Thêm */
 }
 
 @media (max-width: 992px) {
@@ -1205,6 +1314,7 @@ body {
 
 .order-products {
     width: 100%;
+    overflow-x: auto; /* Thêm cho scroll ngang trên mobile */
 }
 
 .order-product {
@@ -1214,6 +1324,7 @@ body {
     align-items: center;
     padding: 16px 0;
     border-bottom: 1px solid var(--gray-200);
+    min-width: 500px; /* Thêm để đảm bảo không bị vỡ layout */
 }
 
 .order-product:last-child {
@@ -1468,14 +1579,18 @@ body {
 
     .sidebar:not(.collapsed) {
         width: var(--sidebar-width);
+        position: fixed; /* Thêm để sidebar không che nội dung */
+        z-index: 1001; /* Thêm */
     }
 
     .main-content {
         margin-left: var(--sidebar-collapsed-width);
+        max-width: calc(100vw - var(--sidebar-collapsed-width)); /* Cập nhật */
     }
 
     .sidebar:not(.collapsed)~.main-content {
         margin-left: var(--sidebar-width);
+        max-width: calc(100vw - var(--sidebar-width)); /* Cập nhật */
     }
 
     .search-box {
@@ -1486,10 +1601,13 @@ body {
 @media (max-width: 992px) {
     .header {
         padding: 0 24px;
+        flex-wrap: wrap; /* Thêm */
+        min-height: var(--header-height);
+        height: auto; /* Thêm */
     }
 
     .orders-content {
-        padding: 24px;
+        padding: 24px 16px; /* Giảm padding */
     }
 
     .page-title {
@@ -1499,15 +1617,35 @@ body {
     .orders-table {
         display: block;
         overflow-x: auto;
+        white-space: nowrap; /* Thêm */
     }
 
     .order-product {
         grid-template-columns: 60px 1fr 1fr;
         gap: 12px;
+        min-width: auto; /* Override */
+    }
+
+    .stats-container {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Giảm min width */
     }
 }
 
 @media (max-width: 768px) {
+    .main-content {
+        margin-left: 0; /* Thêm */
+        max-width: 100vw; /* Cập nhật */
+    }
+
+    .sidebar {
+        transform: translateX(-100%); /* Ẩn sidebar trên mobile */
+        width: var(--sidebar-width);
+    }
+
+    .sidebar:not(.collapsed) {
+        transform: translateX(0); /* Hiện sidebar khi mở */
+    }
+
     .search-box {
         display: none;
     }
@@ -1525,19 +1663,24 @@ body {
     .page-actions {
         width: 100%;
         justify-content: flex-end;
+        flex-wrap: wrap; /* Thêm */
     }
 
     .orders-tabs {
         flex-wrap: wrap;
+        overflow-x: auto; /* Thêm */
     }
 
     .tab-btn {
         min-width: 120px;
         flex: none;
+        font-size: 14px; /* Giảm font size */
+        padding: 12px 16px; /* Giảm padding */
     }
 
     .filter-grid {
         grid-template-columns: 1fr;
+        gap: 16px; /* Giảm gap */
     }
 
     .user-info {
@@ -1547,16 +1690,21 @@ body {
     .modal-content {
         width: 95%;
         margin: 10px;
+        max-height: calc(100vh - 20px); /* Cập nhật */
     }
 
     .order-actions-footer {
         flex-wrap: wrap;
     }
+
+    .order-detail-container {
+        gap: 20px; /* Giảm gap */
+    }
 }
 
 @media (max-width: 576px) {
     .orders-content {
-        padding: 16px;
+        padding: 16px 12px; /* Giảm padding hơn nữa */
     }
 
     .table-header {
@@ -1568,10 +1716,19 @@ body {
     .table-actions {
         width: 100%;
         justify-content: space-between;
+        flex-wrap: wrap; /* Thêm */
+        gap: 8px; /* Thêm */
     }
 
     .pagination {
         flex-wrap: wrap;
+        gap: 4px; /* Giảm gap */
+    }
+
+    .pagination-btn {
+        width: 36px; /* Giảm kích thước */
+        height: 36px;
+        font-size: 14px; /* Giảm font size */
     }
 
     .modal-footer {
@@ -1582,15 +1739,59 @@ body {
     .order-actions-footer {
         width: 100%;
         justify-content: center;
+        gap: 8px; /* Giảm gap */
     }
 
     .btn {
         width: 100%;
         justify-content: center;
+        padding: 10px 16px; /* Giảm padding */
+        font-size: 14px; /* Giảm font size */
     }
 
     .order-product {
         grid-template-columns: 1fr;
         text-align: center;
+    }
+
+    .stat-card {
+        padding: 16px; /* Giảm padding */
+    }
+
+    .stat-number {
+        font-size: 24px; /* Giảm font size */
+    }
+
+    .filter-container {
+        padding: 16px; /* Giảm padding */
+    }
+
+    .date-range {
+        flex-direction: column; /* Stack các input date */
+        align-items: stretch;
+    }
+
+    .page-title {
+        font-size: 20px; /* Giảm font size */
+    }
+
+    .page-title i {
+        font-size: 16px; /* Giảm icon size */
+        padding: 8px; /* Giảm padding */
+    }
+}
+
+/* Thêm class tiện ích để ẩn overflow */
+.no-scroll {
+    overflow: hidden;
+}
+
+/* Fix cho toast trên mobile */
+@media (max-width: 576px) {
+    .toast {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        max-width: calc(100vw - 20px);
     }
 }
