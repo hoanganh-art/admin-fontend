@@ -2037,15 +2037,27 @@
                         </div>
                         
                         <div class="form-group">
+                            <label class="form-label" for="customerPoints">
+                                <i class="fas fa-crown"></i>
+                                Điểm Tích Lũy
+                            </label>
+                            <input type="number" class="form-control" id="customerPoints" placeholder="VD: 1000" min="0" value="0">
+                            <small style="color: var(--gray-500); margin-top: 4px; display: block;">
+                                <strong>Hạng tự động:</strong> 
+                                Đồng (0-499) | Bạc (500-999) | Vàng (1000-4999) | VIP (5000+)
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
                             <label class="form-label" for="customerTier">
                                 <i class="fas fa-crown"></i>
-                                Hạng Thành Viên
+                                Hạng Thành Viên <span style="color: var(--gray-500); font-size: 12px;">(Tự động cập nhật)</span>
                             </label>
-                            <select class="form-control" id="customerTier">
-                                <option value="Đồng">Đồng</option>
-                                <option value="Bạc">Bạc</option>
-                                <option value="Vàng">Vàng</option>
-                                <option value="VIP">VIP</option>
+                            <select class="form-control" id="customerTier" disabled>
+                                <option value="Đồng">Đồng (0-499)</option>
+                                <option value="Bạc">Bạc (500-999)</option>
+                                <option value="Vàng">Vàng (1000-4999)</option>
+                                <option value="VIP">VIP (5000+)</option>
                             </select>
                         </div>
                     </div>

@@ -806,9 +806,59 @@ async function viewCustomerDetail(customerId) {
   }
 }
 
+// ========== HỖ TRỢ HẠNG THÀNH VIÊN ==========
+function calculateTierByPoints(points) {
+  points = parseInt(points) || 0;
+  
+  if (points >= 5000) return "VIP";
+  if (points >= 1000) return "Vàng";
+  if (points >= 500) return "Bạc";
+  return "Đồng";
+}
+
+function updateTierByPoints() {
+  const pointsInput = document.getElementById("customerPoints");
+  const tierSelect = document.getElementById("customerTier");
+  
+  if (!pointsInput || !tierSelect) return;
+  
+  const points = parseInt(pointsInput.value) || 0;
+  const newTier = calculateTierByPoints(points);
+  
+  tierSelect.value = newTier;
+  
+  // Hiển thị phần trăm tiến độ đến hạng tiếp theo
+  let nextMilestone = 0;
+  let currentMilestone = 0;
+  let nextTier = "";
+  
+  if (points < 500) {
+    currentMilestone = 0;
+    nextMilestone = 500;
+    nextTier = "Bạc";
+  } else if (points < 1000) {
+    currentMilestone = 500;
+    nextMilestone = 1000;
+    nextTier = "Vàng";
+  } else if (points < 5000) {
+    currentMilestone = 1000;
+    nextMilestone = 5000;
+    nextTier = "VIP";
+  } else {
+    nextTier = "Đạt tối đa";
+  }
+  
+  if (nextTier !== "Đạt tối đa") {
+    const progress = ((points - currentMilestone) / (nextMilestone - currentMilestone)) * 100;
+    const remainPoints = nextMilestone - points;
+    console.log(`Hạng: ${newTier} | Tiến độ: ${Math.min(100, Math.max(0, progress.toFixed(1)))}% | Còn ${remainPoints} điểm để lên ${nextTier}`);
+  }
+}
+
 // ========== CREATE/UPDATE CUSTOMER FUNCTIONS (CẬP NHẬT) ==========
 async function saveCustomer() {
   // Lấy dữ liệu từ form
+  const points = parseInt(document.getElementById("customerPoints").value) || 0;
   const formData = {
     full_name: document.getElementById("customerName").value.trim(),
     email: document.getElementById("customerEmail").value.trim(),
@@ -816,9 +866,9 @@ async function saveCustomer() {
     date_of_birth: document.getElementById("customerBirthday").value || null,
     gender: document.getElementById("customerGender").value || null,
     address: document.getElementById("customerAddress").value.trim(),
-    membership: document.getElementById("customerTier").value || "Đồng",
+    membership: calculateTierByPoints(points), // Tính hạng tự động
     description: document.getElementById("customerNotes").value.trim(),
-    points: 0, // Mặc định
+    points: points, // Gửi điểm thay vì 0
   };
 
   // Validate dữ liệu
@@ -961,15 +1011,20 @@ function openCustomerForm(isEdit = false, customer = null) {
       ? customer.date_of_birth.split("T")[0]
       : "";
     document.getElementById("customerGender").value = customer.gender || "";
-    document.getElementById("customerTier").value = customer.membership || "";
+    document.getElementById("customerPoints").value = customer.points || 0;
     document.getElementById("customerAddress").value = customer.address || "";
     document.getElementById("customerNotes").value =
       customer.description || "";
+    
+    // Cập nhật hạng tự động dựa trên điểm
+    setTimeout(() => updateTierByPoints(), 100);
   } else {
     modalTitle.textContent = "Thêm Khách Hàng Mới";
     isEditingCustomer = false;
     currentCustomerDetail = null;
     form.reset();
+    document.getElementById("customerPoints").value = 0;
+    updateTierByPoints();
   }
 
   customerFormModal.classList.add("active");
@@ -1055,6 +1110,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     document
       .getElementById("saveCustomerBtn")
       ?.addEventListener("click", saveCustomer);
+
+    // Event listener cho field điểm (tự động cập nhật hạng)
+    document
+      .getElementById("customerPoints")
+      ?.addEventListener("input", updateTierByPoints);
 
     // Event listener cho filter
     document
