@@ -1117,7 +1117,7 @@ async function initializeApp() {
     if (!EmployeesAPI.isAuthenticated()) {
         showToast('warning', 'Cảnh báo!', 'Vui lòng đăng nhập để tiếp tục');
         setTimeout(() => {
-            window.location.href = 'login.html';
+            window.location.href = '../login/login.html';
         }, 2000);
         return;
     }
