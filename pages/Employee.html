@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -196,7 +197,8 @@
             left: 100%;
         }
 
-        .menu-item:hover, .menu-item.active {
+        .menu-item:hover,
+        .menu-item.active {
             background: rgba(255, 255, 255, 0.15);
             color: white;
             border-left-color: white;
@@ -210,7 +212,8 @@
             transition: var(--transition);
         }
 
-        .menu-item:hover i, .menu-item.active i {
+        .menu-item:hover i,
+        .menu-item.active i {
             transform: scale(1.1);
         }
 
@@ -243,7 +246,7 @@
             min-height: 100vh;
         }
 
-        .sidebar.collapsed ~ .main-content {
+        .sidebar.collapsed~.main-content {
             margin-left: var(--sidebar-collapsed-width);
         }
 
@@ -371,9 +374,17 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         .user-profile {
@@ -663,7 +674,8 @@
             color: var(--gray-700);
         }
 
-        .filter-select, .filter-input {
+        .filter-select,
+        .filter-input {
             padding: 12px 16px;
             border: 1px solid var(--gray-300);
             border-radius: var(--border-radius-sm);
@@ -672,7 +684,8 @@
             background: white;
         }
 
-        .filter-select:focus, .filter-input:focus {
+        .filter-select:focus,
+        .filter-input:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
@@ -978,8 +991,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .modal.active {
@@ -1000,8 +1018,15 @@
         }
 
         @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modal-header {
@@ -1247,7 +1272,7 @@
                 margin-left: var(--sidebar-collapsed-width);
             }
 
-            .sidebar:not(.collapsed) ~ .main-content {
+            .sidebar:not(.collapsed)~.main-content {
                 margin-left: var(--sidebar-width);
             }
 
@@ -1340,6 +1365,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar -->
@@ -1641,7 +1667,8 @@
                                 <i class="fas fa-user"></i>
                                 Họ và Tên *
                             </label>
-                            <input type="text" class="form-control" id="staffName" placeholder="VD: Nguyễn Văn A" required>
+                            <input type="text" class="form-control" id="staffName" placeholder="VD: Nguyễn Văn A"
+                                required>
                         </div>
 
                         <div class="form-group">
@@ -1657,7 +1684,8 @@
                                 <i class="fas fa-envelope"></i>
                                 Email *
                             </label>
-                            <input type="email" class="form-control" id="staffEmail" placeholder="VD: nva@phonestore.com" required>
+                            <input type="email" class="form-control" id="staffEmail"
+                                placeholder="VD: nva@phonestore.com" required>
                         </div>
 
                         <div class="form-group">
@@ -1665,7 +1693,8 @@
                                 <i class="fas fa-phone"></i>
                                 Số Điện Thoại *
                             </label>
-                            <input type="tel" class="form-control" id="staffPhone" placeholder="VD: 0987654321" required>
+                            <input type="tel" class="form-control" id="staffPhone" placeholder="VD: 0987654321"
+                                required>
                         </div>
 
                         <div class="form-group">
@@ -1705,7 +1734,8 @@
                                 <i class="fas fa-money-bill-wave"></i>
                                 Lương Cơ Bản (VNĐ) *
                             </label>
-                            <input type="number" class="form-control" id="staffSalary" placeholder="VD: 10000000" min="0" required>
+                            <input type="number" class="form-control" id="staffSalary" placeholder="VD: 10000000"
+                                min="0" required>
                         </div>
 
                         <div class="form-group">
@@ -1722,7 +1752,8 @@
                             <i class="fas fa-home"></i>
                             Địa Chỉ
                         </label>
-                        <textarea class="form-control form-textarea" id="staffAddress" rows="3" placeholder="Địa chỉ nhân viên..."></textarea>
+                        <textarea class="form-control form-textarea" id="staffAddress" rows="3"
+                            placeholder="Địa chỉ nhân viên..."></textarea>
                     </div>
 
                     <div class="form-group">
@@ -1786,9 +1817,11 @@
             </div>
             <div class="modal-body">
                 <div style="text-align: center; padding: 20px;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 64px; color: var(--warning-color); margin-bottom: 20px;"></i>
+                    <i class="fas fa-exclamation-triangle"
+                        style="font-size: 64px; color: var(--warning-color); margin-bottom: 20px;"></i>
                     <h3 style="margin-bottom: 12px; color: var(--gray-800);">Bạn có chắc chắn muốn xóa?</h3>
-                    <p style="color: var(--gray-600); margin-bottom: 8px;">Nhân viên "<strong id="deleteStaffName"></strong>" sẽ bị xóa vĩnh viễn.</p>
+                    <p style="color: var(--gray-600); margin-bottom: 8px;">Nhân viên "<strong
+                            id="deleteStaffName"></strong>" sẽ bị xóa vĩnh viễn.</p>
                     <p style="color: var(--gray-500); font-size: 14px;">Hành động này không thể hoàn tác.</p>
                 </div>
             </div>
@@ -1816,832 +1849,8 @@
         </div>
         <button class="toast-close" id="closeToast">&times;</button>
     </div>
+    <script src="../js/pager/API/employees.js"></script>
 
-    <script>
-        // ========== DỮ LIỆU MẪU ==========
-        const sampleStaff = [
-            {
-                id: 1,
-                name: "Nguyễn Văn Tùng",
-                code: "NV001",
-                email: "tungnv@phonestore.com",
-                phone: "0987654321",
-                role: "admin",
-                department: "management",
-                salary: 25000000,
-                joinDate: "2022-01-15",
-                address: "123 Nguyễn Trãi, Q.1, TP.HCM",
-                status: "active",
-                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 2,
-                name: "Trần Thị Mai",
-                code: "NV002",
-                email: "maitt@phonestore.com",
-                phone: "0987123456",
-                role: "manager",
-                department: "sales",
-                salary: 18000000,
-                joinDate: "2022-03-20",
-                address: "456 Lê Lợi, Q.1, TP.HCM",
-                status: "active",
-                avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 3,
-                name: "Lê Văn Hùng",
-                code: "NV003",
-                email: "hunglv@phonestore.com",
-                phone: "0909123456",
-                role: "sales",
-                department: "sales",
-                salary: 12000000,
-                joinDate: "2022-05-10",
-                address: "789 Pasteur, Q.3, TP.HCM",
-                status: "active",
-                avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 4,
-                name: "Phạm Thị Lan",
-                code: "NV004",
-                email: "lanpt@phonestore.com",
-                phone: "0918234567",
-                role: "warehouse",
-                department: "warehouse",
-                salary: 10000000,
-                joinDate: "2022-06-15",
-                address: "321 Cách Mạng Tháng 8, Q.10, TP.HCM",
-                status: "active",
-                avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 5,
-                name: "Hoàng Văn Minh",
-                code: "NV005",
-                email: "minhhv@phonestore.com",
-                phone: "0927345678",
-                role: "accounting",
-                department: "accounting",
-                salary: 15000000,
-                joinDate: "2022-02-28",
-                address: "654 Nguyễn Văn Linh, Q.7, TP.HCM",
-                status: "onleave",
-                avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 6,
-                name: "Vũ Thị Hương",
-                code: "NV006",
-                email: "huongvt@phonestore.com",
-                phone: "0938456789",
-                role: "marketing",
-                department: "marketing",
-                salary: 13000000,
-                joinDate: "2022-07-01",
-                address: "987 Tô Hiến Thành, Q.10, TP.HCM",
-                status: "active",
-                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 7,
-                name: "Đặng Văn Sơn",
-                code: "NV007",
-                email: "sondv@phonestore.com",
-                phone: "0949567890",
-                role: "it",
-                department: "it",
-                salary: 20000000,
-                joinDate: "2022-04-12",
-                address: "147 Võ Văn Kiệt, Q.1, TP.HCM",
-                status: "active",
-                avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 8,
-                name: "Bùi Thị Ngọc",
-                code: "NV008",
-                email: "ngocbt@phonestore.com",
-                phone: "0950678901",
-                role: "hr",
-                department: "hr",
-                salary: 14000000,
-                joinDate: "2022-08-05",
-                address: "258 Trần Hưng Đạo, Q.5, TP.HCM",
-                status: "inactive",
-                avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 9,
-                name: "Nguyễn Văn Hải",
-                code: "NV009",
-                email: "hainv@phonestore.com",
-                phone: "0961789012",
-                role: "sales",
-                department: "sales",
-                salary: 11000000,
-                joinDate: "2022-09-18",
-                address: "369 Nguyễn Thị Minh Khai, Q.3, TP.HCM",
-                status: "active",
-                avatar: "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 10,
-                name: "Lý Thị Thu",
-                code: "NV010",
-                email: "thult@phonestore.com",
-                phone: "0972890123",
-                role: "warehouse",
-                department: "warehouse",
-                salary: 9500000,
-                joinDate: "2022-10-22",
-                address: "741 Điện Biên Phủ, Q.Bình Thạnh, TP.HCM",
-                status: "active",
-                avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 11,
-                name: "Trần Văn Nam",
-                code: "NV011",
-                email: "namtv@phonestore.com",
-                phone: "0983901234",
-                role: "sales",
-                department: "sales",
-                salary: 11500000,
-                joinDate: "2022-11-30",
-                address: "852 Phan Đình Phùng, Q.Phú Nhuận, TP.HCM",
-                status: "onleave",
-                avatar: "https://images.unsplash.com/photo-1506919258185-6078bba55d2a?w=400&h=400&fit=crop&crop=face"
-            },
-            {
-                id: 12,
-                name: "Phan Thị Ánh",
-                code: "NV012",
-                email: "anhpt@phonestore.com",
-                phone: "0994012345",
-                role: "accounting",
-                department: "accounting",
-                salary: 14500000,
-                joinDate: "2022-12-10",
-                address: "963 Lý Tự Trọng, Q.1, TP.HCM",
-                status: "active",
-                avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop&crop=face"
-            }
-        ];
-
-        // ========== KHỞI TẠO BIẾN ==========
-        let currentPage = 1;
-        let rowsPerPage = 12;
-        let filteredStaff = [...sampleStaff];
-        let staffToDelete = null;
-        let isEditing = false;
-        let currentStaffId = null;
-
-        // DOM Elements
-        const toggleSidebar = document.getElementById('toggleSidebar');
-        const addStaffBtn = document.getElementById('addStaffBtn');
-        const staffModal = document.getElementById('staffModal');
-        const deleteModal = document.getElementById('deleteModal');
-        const closeModal = document.getElementById('closeModal');
-        const closeDeleteModal = document.getElementById('closeDeleteModal');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-        const saveStaffBtn = document.getElementById('saveStaffBtn');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        const staffTableBody = document.getElementById('staffTableBody');
-        const selectAll = document.getElementById('selectAll');
-        const roleFilter = document.getElementById('roleFilter');
-        const statusFilter = document.getElementById('statusFilter');
-        const departmentFilter = document.getElementById('departmentFilter');
-        const sortFilter = document.getElementById('sortFilter');
-        const applyFilters = document.getElementById('applyFilters');
-        const clearFilters = document.getElementById('clearFilters');
-        const resetFilters = document.getElementById('resetFilters');
-        const rowsPerPageSelect = document.getElementById('rowsPerPage');
-        const refreshTable = document.getElementById('refreshTable');
-        const exportBtn = document.getElementById('exportBtn');
-        const searchInput = document.querySelector('.search-box input');
-        const modalTitle = document.getElementById('modalTitle');
-        const deleteStaffName = document.getElementById('deleteStaffName');
-        const staffForm = document.getElementById('staffForm');
-        const avatarUpload = document.getElementById('avatarUpload');
-        const avatarPreview = document.getElementById('avatarPreview');
-        const toast = document.getElementById('toast');
-        const toastTitle = document.getElementById('toastTitle');
-        const toastMessage = document.getElementById('toastMessage');
-        const toastIcon = document.getElementById('toastIcon');
-        const closeToast = document.getElementById('closeToast');
-
-        // ========== SIDEBAR TOGGLE ==========
-        toggleSidebar.addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-            const icon = this.querySelector('i');
-            icon.style.transform = 'rotate(180deg)';
-            setTimeout(() => {
-                icon.style.transform = '';
-            }, 300);
-        });
-
-        // ========== MENU ACTIVE STATE ==========
-        const menuItems = document.querySelectorAll('.menu-item');
-        menuItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                if (this.getAttribute('href') === '#') {
-                    e.preventDefault();
-                }
-                menuItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-
-        // ========== RENDER BẢNG NHÂN VIÊN ==========
-        function renderStaffTable() {
-            staffTableBody.innerHTML = '';
-
-            const start = (currentPage - 1) * rowsPerPage;
-            const end = start + rowsPerPage;
-            const staffToShow = filteredStaff.slice(start, end);
-
-            if (staffToShow.length === 0) {
-                staffTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8">
-                            <div class="empty-state">
-                                <i class="fas fa-user-slash"></i>
-                                <h3>Không tìm thấy nhân viên</h3>
-                                <p>Không có nhân viên nào phù hợp với tiêu chí tìm kiếm của bạn.</p>
-                                <button class="btn btn-primary" onclick="clearAllFilters()">
-                                    <i class="fas fa-times"></i>
-                                    Xóa tất cả bộ lọc
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            staffToShow.forEach(staff => {
-                const roleClass = getRoleClass(staff.role);
-                const roleText = getRoleText(staff.role);
-                const departmentText = getDepartmentText(staff.department);
-                const statusClass = getStatusClass(staff.status);
-                const statusText = getStatusText(staff.status);
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>
-                        <input type="checkbox" class="staff-checkbox" data-id="${staff.id}">
-                    </td>
-                    <td>
-                        <div class="staff-info">
-                            <div class="staff-avatar">
-                                <img src="${staff.avatar}" alt="${staff.name}">
-                            </div>
-                            <div class="staff-details">
-                                <div class="staff-name">${staff.name}</div>
-                                <div class="staff-email">${staff.email}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="staff-id">${staff.code}</td>
-                    <td>
-                        <span class="role-badge ${roleClass}">${roleText}</span>
-                    </td>
-                    <td>${departmentText}</td>
-                    <td class="staff-salary">${formatPrice(staff.salary)}₫</td>
-                    <td>
-                        <span class="status-badge ${statusClass}">
-                            ${statusText}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="staff-actions">
-                            <button class="action-btn view" onclick="viewStaff(${staff.id})" title="Xem chi tiết">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn edit" onclick="editStaff(${staff.id})" title="Chỉnh sửa">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn delete" onclick="showDeleteModal(${staff.id}, '${staff.name}')" title="Xóa">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                staffTableBody.appendChild(row);
-            });
-
-            updateTableInfo();
-            updatePagination();
-        }
-
-        // ========== HÀM HỖ TRỢ ==========
-        function getRoleClass(role) {
-            const classes = {
-                'admin': 'role-admin',
-                'manager': 'role-manager',
-                'staff': 'role-staff',
-                'sales': 'role-sales',
-                'warehouse': 'role-staff',
-                'accounting': 'role-staff',
-                'marketing': 'role-staff',
-                'it': 'role-staff',
-                'hr': 'role-staff'
-            };
-            return classes[role] || 'role-staff';
-        }
-
-        function getRoleText(role) {
-            const texts = {
-                'admin': 'Quản trị viên',
-                'manager': 'Quản lý',
-                'staff': 'Nhân viên',
-                'sales': 'NV Bán hàng',
-                'warehouse': 'NV Kho',
-                'accounting': 'Kế toán',
-                'marketing': 'Marketing',
-                'it': 'IT',
-                'hr': 'Nhân sự'
-            };
-            return texts[role] || role;
-        }
-
-        function getDepartmentText(department) {
-            const texts = {
-                'sales': 'Bán hàng',
-                'warehouse': 'Kho vận',
-                'accounting': 'Kế toán',
-                'marketing': 'Marketing',
-                'it': 'IT',
-                'hr': 'Nhân sự',
-                'management': 'Quản lý'
-            };
-            return texts[department] || department;
-        }
-
-        function getStatusClass(status) {
-            return `status-${status}`;
-        }
-
-        function getStatusText(status) {
-            const texts = {
-                'active': 'Đang làm',
-                'inactive': 'Đã nghỉ',
-                'onleave': 'Nghỉ phép'
-            };
-            return texts[status] || status;
-        }
-
-        function formatPrice(price) {
-            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        function updateTableInfo() {
-            const total = filteredStaff.length;
-            const start = (currentPage - 1) * rowsPerPage + 1;
-            const end = Math.min(currentPage * rowsPerPage, total);
-            const infoElement = document.querySelector('.table-info');
-            if (infoElement) {
-                infoElement.innerHTML = `Hiển thị <strong>${start}-${end}</strong> trong tổng số <strong>${total}</strong> nhân viên`;
-            }
-        }
-
-        function updatePagination() {
-            const totalPages = Math.ceil(filteredStaff.length / rowsPerPage);
-            const paginationContainer = document.querySelector('.pagination');
-            const numberButtons = paginationContainer.querySelectorAll('.pagination-btn:not(#firstPage):not(#prevPage):not(#nextPage):not(#lastPage)');
-
-            // Cập nhật số trang
-            numberButtons.forEach((btn, index) => {
-                const pageNum = index + 1;
-                if (pageNum <= totalPages) {
-                    btn.textContent = pageNum;
-                    btn.style.display = 'flex';
-                    btn.classList.toggle('active', pageNum === currentPage);
-                } else {
-                    btn.style.display = 'none';
-                }
-            });
-
-            // Cập nhật trạng thái nút điều hướng
-            document.getElementById('firstPage').disabled = currentPage === 1;
-            document.getElementById('prevPage').disabled = currentPage === 1;
-            document.getElementById('nextPage').disabled = currentPage === totalPages;
-            document.getElementById('lastPage').disabled = currentPage === totalPages;
-        }
-
-        // ========== FILTER FUNCTIONS ==========
-        function applyStaffFilters() {
-            filteredStaff = sampleStaff.filter(staff => {
-                // Lọc theo chức vụ
-                if (roleFilter.value && staff.role !== roleFilter.value) {
-                    return false;
-                }
-
-                // Lọc theo trạng thái
-                if (statusFilter.value && staff.status !== statusFilter.value) {
-                    return false;
-                }
-
-                // Lọc theo phòng ban
-                if (departmentFilter.value && staff.department !== departmentFilter.value) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            // Sắp xếp
-            applySorting();
-
-            currentPage = 1;
-            renderStaffTable();
-        }
-
-        function applySorting() {
-            const sortValue = sortFilter.value;
-            filteredStaff.sort((a, b) => {
-                switch (sortValue) {
-                    case 'name-asc':
-                        return a.name.localeCompare(b.name);
-                    case 'name-desc':
-                        return b.name.localeCompare(a.name);
-                    case 'date-asc':
-                        return new Date(a.joinDate) - new Date(b.joinDate);
-                    case 'date-desc':
-                        return new Date(b.joinDate) - new Date(a.joinDate);
-                    case 'salary-asc':
-                        return a.salary - b.salary;
-                    case 'salary-desc':
-                        return b.salary - a.salary;
-                    default:
-                        return 0;
-                }
-            });
-        }
-
-        function clearAllFilters() {
-            roleFilter.value = '';
-            statusFilter.value = '';
-            departmentFilter.value = '';
-            sortFilter.value = 'name-asc';
-            searchInput.value = '';
-            filteredStaff = [...sampleStaff];
-            currentPage = 1;
-            renderStaffTable();
-            showToast('Thành công', 'Đã xóa tất cả bộ lọc', 'success');
-        }
-
-        // ========== MODAL FUNCTIONS ==========
-        function openStaffModal(editMode = false, staffData = null) {
-            if (editMode && staffData) {
-                modalTitle.textContent = 'Chỉnh Sửa Nhân Viên';
-                isEditing = true;
-                currentStaffId = staffData.id;
-
-                // Điền dữ liệu vào form
-                document.getElementById('staffName').value = staffData.name;
-                document.getElementById('staffCode').value = staffData.code;
-                document.getElementById('staffEmail').value = staffData.email;
-                document.getElementById('staffPhone').value = staffData.phone;
-                document.getElementById('staffRole').value = staffData.role;
-                document.getElementById('staffDepartment').value = staffData.department;
-                document.getElementById('staffSalary').value = staffData.salary;
-                document.getElementById('staffJoinDate').value = staffData.joinDate;
-                document.getElementById('staffAddress').value = staffData.address;
-
-                // Đặt trạng thái
-                const statusRadio = document.querySelector(`input[name="staffStatus"][value="${staffData.status}"]`);
-                if (statusRadio) statusRadio.checked = true;
-
-                // Hiển thị ảnh preview
-                if (staffData.avatar) {
-                    avatarPreview.style.display = 'block';
-                    avatarPreview.querySelector('img').src = staffData.avatar;
-                }
-            } else {
-                modalTitle.textContent = 'Thêm Nhân Viên Mới';
-                isEditing = false;
-                currentStaffId = null;
-                
-                // Đặt ngày mặc định là hôm nay
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('staffJoinDate').value = today;
-                
-                staffForm.reset();
-                avatarPreview.style.display = 'none';
-            }
-
-            staffModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeStaffModalFunc() {
-            staffModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-            staffForm.reset();
-            avatarPreview.style.display = 'none';
-            isEditing = false;
-            currentStaffId = null;
-        }
-
-        function saveStaff() {
-            // Lấy dữ liệu từ form
-            const formData = {
-                id: isEditing ? currentStaffId : sampleStaff.length + 1,
-                name: document.getElementById('staffName').value,
-                code: document.getElementById('staffCode').value,
-                email: document.getElementById('staffEmail').value,
-                phone: document.getElementById('staffPhone').value,
-                role: document.getElementById('staffRole').value,
-                department: document.getElementById('staffDepartment').value,
-                salary: parseInt(document.getElementById('staffSalary').value),
-                joinDate: document.getElementById('staffJoinDate').value,
-                address: document.getElementById('staffAddress').value,
-                status: document.querySelector('input[name="staffStatus"]:checked').value,
-                avatar: avatarPreview.style.display === 'block' ? 
-                    avatarPreview.querySelector('img').src : 
-                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face'
-            };
-
-            // Validate dữ liệu
-            if (!formData.name || !formData.code || !formData.email || !formData.phone || 
-                !formData.role || !formData.department || !formData.salary || !formData.joinDate) {
-                showToast('Lỗi', 'Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
-                return;
-            }
-
-            // Validate email
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(formData.email)) {
-                showToast('Lỗi', 'Email không hợp lệ', 'error');
-                return;
-            }
-
-            // Hiệu ứng loading
-            saveStaffBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
-            saveStaffBtn.disabled = true;
-
-            // Giả lập lưu dữ liệu
-            setTimeout(() => {
-                if (isEditing) {
-                    // Cập nhật nhân viên
-                    const index = sampleStaff.findIndex(s => s.id === currentStaffId);
-                    if (index !== -1) {
-                        sampleStaff[index] = formData;
-                    }
-                } else {
-                    // Thêm nhân viên mới
-                    sampleStaff.unshift(formData);
-                }
-
-                // Cập nhật UI
-                applyStaffFilters();
-                closeStaffModalFunc();
-
-                // Hiển thị thông báo
-                showToast(
-                    'Thành công',
-                    isEditing ? 'Đã cập nhật nhân viên thành công' : 'Đã thêm nhân viên mới thành công',
-                    'success'
-                );
-
-                // Reset nút
-                saveStaffBtn.innerHTML = '<i class="fas fa-save"></i> Lưu Nhân Viên';
-                saveStaffBtn.disabled = false;
-
-            }, 1500);
-        }
-
-        function showDeleteModal(staffId, staffName) {
-            staffToDelete = staffId;
-            deleteStaffName.textContent = staffName;
-            deleteModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeDeleteModalFunc() {
-            deleteModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-            staffToDelete = null;
-        }
-
-        function deleteStaff() {
-            if (!staffToDelete) return;
-
-            // Hiệu ứng loading
-            confirmDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xóa...';
-            confirmDeleteBtn.disabled = true;
-
-            // Giả lập xóa
-            setTimeout(() => {
-                const index = sampleStaff.findIndex(s => s.id === staffToDelete);
-                if (index !== -1) {
-                    sampleStaff.splice(index, 1);
-                }
-
-                // Cập nhật UI
-                applyStaffFilters();
-                closeDeleteModalFunc();
-
-                // Hiển thị thông báo
-                showToast('Thành công', 'Đã xóa nhân viên thành công', 'success');
-
-                // Reset nút
-                confirmDeleteBtn.innerHTML = '<i class="fas fa-trash"></i> Xóa Nhân Viên';
-                confirmDeleteBtn.disabled = false;
-
-            }, 1000);
-        }
-
-        function viewStaff(staffId) {
-            const staff = sampleStaff.find(s => s.id === staffId);
-            if (staff) {
-                showToast(
-                    'Thông tin nhân viên',
-                    `${staff.name} - ${staff.code} - ${staff.department} - Lương: ${formatPrice(staff.salary)}₫`,
-                    'success'
-                );
-            }
-        }
-
-        function editStaff(staffId) {
-            const staff = sampleStaff.find(s => s.id === staffId);
-            if (staff) {
-                openStaffModal(true, staff);
-            }
-        }
-
-        // ========== TOAST NOTIFICATION ==========
-        function showToast(title, message, type = 'success') {
-            toastTitle.textContent = title;
-            toastMessage.textContent = message;
-
-            // Đổi màu và icon theo type
-            const icon = toastIcon.querySelector('i');
-            switch (type) {
-                case 'success':
-                    toastIcon.className = 'toast-icon success';
-                    icon.className = 'fas fa-check';
-                    break;
-                case 'warning':
-                    toastIcon.className = 'toast-icon warning';
-                    icon.className = 'fas fa-exclamation-triangle';
-                    break;
-                case 'error':
-                    toastIcon.className = 'toast-icon error';
-                    icon.className = 'fas fa-times';
-                    break;
-            }
-
-            toast.classList.add('show');
-
-            // Tự động đóng sau 5 giây
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 5000);
-        }
-
-        // ========== EVENT LISTENERS ==========
-        // Modal events
-        addStaffBtn.addEventListener('click', () => openStaffModal());
-        closeModal.addEventListener('click', closeStaffModalFunc);
-        closeDeleteModal.addEventListener('click', closeDeleteModalFunc);
-        cancelBtn.addEventListener('click', closeStaffModalFunc);
-        cancelDeleteBtn.addEventListener('click', closeDeleteModalFunc);
-        saveStaffBtn.addEventListener('click', saveStaff);
-        confirmDeleteBtn.addEventListener('click', deleteStaff);
-
-        // Filter events
-        applyFilters.addEventListener('click', applyStaffFilters);
-        clearFilters.addEventListener('click', () => {
-            roleFilter.value = '';
-            statusFilter.value = '';
-            departmentFilter.value = '';
-            sortFilter.value = 'name-asc';
-            applyStaffFilters();
-            showToast('Thành công', 'Đã xóa bộ lọc', 'success');
-        });
-
-        resetFilters.addEventListener('click', clearAllFilters);
-        sortFilter.addEventListener('change', applyStaffFilters);
-
-        // Search event
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && searchInput.value.trim()) {
-                const searchTerm = searchInput.value.toLowerCase();
-                filteredStaff = sampleStaff.filter(staff =>
-                    staff.name.toLowerCase().includes(searchTerm) ||
-                    staff.code.toLowerCase().includes(searchTerm) ||
-                    staff.email.toLowerCase().includes(searchTerm) ||
-                    staff.phone.includes(searchTerm)
-                );
-                currentPage = 1;
-                renderStaffTable();
-                showToast('Tìm kiếm', `Tìm thấy ${filteredStaff.length} nhân viên phù hợp`, 'success');
-            }
-        });
-
-        // Pagination events
-        rowsPerPageSelect.addEventListener('change', (e) => {
-            rowsPerPage = parseInt(e.target.value);
-            currentPage = 1;
-            renderStaffTable();
-        });
-
-        refreshTable.addEventListener('click', () => {
-            filteredStaff = [...sampleStaff];
-            currentPage = 1;
-            renderStaffTable();
-            showToast('Thành công', 'Đã làm mới danh sách nhân viên', 'success');
-        });
-
-        exportBtn.addEventListener('click', () => {
-            showToast('Xuất file', 'Đang xuất dữ liệu nhân viên ra file Excel...', 'success');
-        });
-
-        // Select all checkbox
-        selectAll.addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('.staff-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
-            });
-        });
-
-        // Pagination button events
-        document.getElementById('firstPage').addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage = 1;
-                renderStaffTable();
-            }
-        });
-
-        document.getElementById('prevPage').addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderStaffTable();
-            }
-        });
-
-        document.getElementById('nextPage').addEventListener('click', () => {
-            const totalPages = Math.ceil(filteredStaff.length / rowsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderStaffTable();
-            }
-        });
-
-        document.getElementById('lastPage').addEventListener('click', () => {
-            const totalPages = Math.ceil(filteredStaff.length / rowsPerPage);
-            if (currentPage < totalPages) {
-                currentPage = totalPages;
-                renderStaffTable();
-            }
-        });
-
-        // Avatar upload simulation
-        avatarUpload.addEventListener('click', () => {
-            // Trong thực tế, đây sẽ là input file thực
-            const fakeAvatarUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
-            avatarPreview.style.display = 'block';
-            avatarPreview.querySelector('img').src = fakeAvatarUrl;
-            showToast('Tải ảnh', 'Đã tải ảnh đại diện lên thành công', 'success');
-        });
-
-        // Close toast
-        closeToast.addEventListener('click', () => {
-            toast.classList.remove('show');
-        });
-
-        // Đóng modal khi click bên ngoài
-        window.addEventListener('click', (e) => {
-            if (e.target === staffModal) closeStaffModalFunc();
-            if (e.target === deleteModal) closeDeleteModalFunc();
-        });
-
-        // ========== KHỞI TẠO ==========
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set ngày mặc định cho form
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('staffJoinDate').value = today;
-            
-            // Render bảng nhân viên ban đầu
-            renderStaffTable();
-
-            // Thêm hiệu ứng load cho các stat cards
-            document.querySelectorAll('.stat-card').forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-
-                setTimeout(() => {
-                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
-        });
-    </script>
 </body>
+
 </html>
