@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Chuyển hướng sau 2 giây
                 setTimeout(() => {
-                    window.location.href = "index.html"; // Hoặc Employee.html
+                    window.location.href = "../index.html"; // Hoặc Employee.html
                 }, 2000);
             } else {
                 throw new Error(result.message || 'Đăng nhập thất bại');
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (localStorage.getItem('auth_token')) {
         showToast('info', 'Đã đăng nhập', 'Bạn đã đăng nhập, đang chuyển hướng...', 2000);
         setTimeout(() => {
-            window.location.href = "index.html";
+            window.location.href = "../index.html";
         }, 2000);
     }
 
