@@ -15,7 +15,6 @@ const API_ENDPOINTS = {
 }
 
 // ========= XỬ LÝ LỖI CHUNG =========
-
 class APIError extends Error {
     constructor(message, statusCode) {
         super(message);
@@ -62,12 +61,18 @@ const apiCall = async (endpoint, method = 'GET', data = null, headers = {}) => {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
         if (!response.ok) {
-            throw { response };
+            const errorData = await response.json().catch(() => ({}));
+            throw { 
+                response: { 
+                    data: errorData, 
+                    status: response.status 
+                } 
+            };
         }
 
         return await response.json();
     } catch (error) {
-        handleError(error);
+        throw handleError(error) || error;
     }
 };
 
