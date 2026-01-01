@@ -26,7 +26,27 @@ const handleError = (error) => {
     if (error.response) {
         // Lỗi từ server
         const { data, status } = error.response;
-        throw new APIError(data.message || 'Đã có lỗi xảy ra', status);
+        
+        // Nếu data là string (HTML), trích xuất thông báo lỗi
+        let errorMessage = 'Đã có lỗi xảy ra';
+        if (typeof data === 'string') {
+            // Thử trích xuất pesan lỗi từ HTML
+            const match = data.match(/<h1[^>]*>([^<]+)<\/h1>/);
+            if (match) {
+                errorMessage = match[1].trim();
+            } else if (data.includes('404')) {
+                errorMessage = 'Không tìm thấy tài nguyên (404)';
+            } else if (data.includes('500')) {
+                errorMessage = 'Lỗi máy chủ (500) - Vui lòng kiểm tra backend logs';
+            } else {
+                errorMessage = 'Lỗi từ máy chủ - Chi tiết: ' + data.substring(0, 100);
+            }
+        } else if (data?.message) {
+            errorMessage = data.message;
+        }
+        
+        console.warn('[Error Details]', { status, data });
+        throw new APIError(errorMessage, status);
     } else if (error.request) {
         // Không nhận được phản hồi
         throw new APIError('Không thể kết nối đến máy chủ', 0);
@@ -57,26 +77,45 @@ const apiCall = async (endpoint, method = 'GET', data = null, headers = {}) => {
     }
 
     try {
-        console.log(`[API Call] ${method} ${API_BASE_URL}${endpoint}`, data); // Debug log
+        console.log(`[API Call] ${method} ${API_BASE_URL}${endpoint}`, data ? data : 'no data');
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
+        // Lấy response text trước để debug
+        const responseText = await response.text();
+        console.log(`[API Response] Status: ${response.status}, Text length: ${responseText.length}`);
+        
+        let responseData;
+
+        try {
+            responseData = responseText ? JSON.parse(responseText) : {};
+        } catch (e) {
+            console.error('[API Parse Error]', e);
+            responseData = { message: responseText || 'Unknown error' };
+        }
+
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error(`[API Error] ${response.status}:`, errorData); // Debug log
+            console.error(`[API Error] ${response.status}:`, responseData);
             throw {
                 response: {
-                    data: errorData,
-                    status: response.status
+                    data: responseData,
+                    status: response.status,
+                    statusText: response.statusText
                 }
             };
         }
 
-        const result = await response.json();
-        console.log(`[API Success] ${method} ${endpoint}:`, result); // Debug log
-        return result;
+        console.log(`[API Success] ${method} ${endpoint}:`, responseData);
+        return responseData;
     } catch (error) {
-        console.error(`[API Catch Error] ${method} ${endpoint}:`, error); // Debug log
-        throw handleError(error) || error;
+        console.error(`[API Catch Error] ${method} ${endpoint}:`, error);
+
+        // Nếu error đã là APIError thì không cần xử lý lại
+        if (error.name === 'APIError') {
+            throw error;
+        }
+
+        // Xử lý lỗi khác
+        throw handleError(error);
     }
 };
 
@@ -300,6 +339,7 @@ document.getElementById('closeToast')?.addEventListener('click', () => {
 });
 
 // ========= HÀM LẤY DỮ LIỆU NHÂN VIÊN TỪ API =========
+// ========= HÀM LẤY DỮ LIỆU NHÂN VIÊN TỪ API =========
 async function loadEmployees() {
     try {
         // Hiển thị loading state
@@ -318,9 +358,22 @@ async function loadEmployees() {
             page: currentPage
         });
 
-        if (result.success) {
-            allEmployees = result.data.data;
-            totalEmployees = result.data.total;
+        console.log('API Response:', result); // Debug
+
+        if (result && result.success) {
+            // Xử lý cả 2 cấu trúc response có thể có
+            if (result.data?.data && Array.isArray(result.data.data)) {
+                // Response có pagination: { success: true, data: { data: [], total: 0 } }
+                allEmployees = result.data.data;
+                totalEmployees = result.data.total || result.data.data.length;
+            } else if (Array.isArray(result.data)) {
+                // Response trực tiếp: { success: true, data: [] }
+                allEmployees = result.data;
+                totalEmployees = result.data.length;
+            } else {
+                allEmployees = [];
+                totalEmployees = 0;
+            }
 
             // Cập nhật tổng số nhân viên
             const totalStatElement = document.querySelector('.stat-card:nth-child(1) .stat-number');
@@ -340,32 +393,74 @@ async function loadEmployees() {
             updatePagination();
 
             // Cập nhật thống kê
-            updateStatistics();
+            await updateStatistics();
+        } else {
+            // Nếu không có dữ liệu
+            renderEmployees([]);
+            setDefaultStatistics();
         }
     } catch (error) {
         console.error('Lỗi khi tải dữ liệu nhân viên:', error);
-        showToast('error', 'Lỗi!', 'Không thể tải dữ liệu nhân viên');
+        
+        // Hiển thị thông báo lỗi thân thiện
+        const errorMessage = error.statusCode === 404 
+            ? 'Không tìm thấy endpoint API. Vui lòng kiểm tra cấu hình server.'
+            : error.message || 'Đã xảy ra lỗi khi tải dữ liệu';
+        
+        showToast('error', 'Lỗi!', errorMessage);
+        
         staffTableBody.innerHTML = `
             <tr>
                 <td colspan="8" class="empty-state">
                     <i class="fas fa-exclamation-triangle"></i>
                     <h3>Không thể tải dữ liệu</h3>
-                    <p>${error.message || 'Đã xảy ra lỗi khi tải dữ liệu'}</p>
-                    <button class="btn btn-primary" onclick="loadEmployees()">
-                        <i class="fas fa-redo"></i>
-                        Thử lại
-                    </button>
+                    <p>${errorMessage}</p>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-primary" onclick="loadEmployees()">
+                            <i class="fas fa-redo"></i>
+                            Thử lại
+                        </button>
+                        <button class="btn btn-secondary" onclick="checkApiStatus()" style="margin-left: 10px;">
+                            <i class="fas fa-server"></i>
+                            Kiểm tra API
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
+        
+        setDefaultStatistics();
     }
 }
 
+// Hàm kiểm tra trạng thái API
+async function checkApiStatus() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/employees/statistics`);
+        const data = await response.json();
+        
+        showToast('info', 'API Status', 
+            `Status: ${response.status} - ${response.statusText}\n` +
+            `URL: ${API_BASE_URL}/api/employees/statistics`
+        );
+        
+        console.log('API Response:', data);
+    } catch (error) {
+        showToast('error', 'API Error', 
+            `Không thể kết nối đến API\n` +
+            `URL: ${API_BASE_URL}/api/employees/statistics\n` +
+            `Lỗi: ${error.message}`
+        );
+    }
+}
 // ========= HÀM HIỂN THỊ DANH SÁCH NHÂN VIÊN =========
 function renderEmployees(employees) {
-    if (!staffTableBody) return;
+    if (!staffTableBody) {
+        console.error('staffTableBody không tồn tại');
+        return;
+    }
 
-    if (employees.length === 0) {
+    if (!employees || employees.length === 0) {
         staffTableBody.innerHTML = `
             <tr>
                 <td colspan="8" class="empty-state">
@@ -381,6 +476,12 @@ function renderEmployees(employees) {
     staffTableBody.innerHTML = '';
 
     employees.forEach(employee => {
+        // Kiểm tra dữ liệu employee
+        if (!employee || !employee.id) {
+            console.warn('Dữ liệu nhân viên không hợp lệ:', employee);
+            return;
+        }
+
         const row = document.createElement('tr');
 
         // Lấy ký tự đầu tiên của tên để hiển thị avatar
@@ -473,11 +574,13 @@ function renderEmployees(employees) {
 }
 
 // ========= HÀM CẬP NHẬT THỐNG KÊ =========
+// ========= HÀM CẬP NHẬT THỐNG KÊ =========
 async function updateStatistics() {
     try {
         const statsResult = await EmployeesAPI.getStatistics();
-        if (statsResult.success) {
-            const stats = statsResult.data;
+
+        if (statsResult && statsResult.success) {
+            const stats = statsResult.data || {};
 
             // Cập nhật các card thống kê
             const statCards = document.querySelectorAll('.stat-card .stat-number');
@@ -488,21 +591,39 @@ async function updateStatistics() {
                 // Đang làm việc
                 statCards[1].textContent = stats.active_employees || 0;
 
-                // Nghỉ phép (lấy từ take a break)
-                const onLeaveCount = stats.position_statistics?.find(stat =>
-                    stat.status === 'take a break'
-                )?.count || 0;
+                // Nghỉ phép (tìm trong status_statistics)
+                let onLeaveCount = 0;
+                if (stats.status_statistics && Array.isArray(stats.status_statistics)) {
+                    const onLeaveStat = stats.status_statistics.find(stat =>
+                        stat.status === 'take a break' || stat.status === 'onleave'
+                    );
+                    onLeaveCount = onLeaveStat ? onLeaveStat.count : 0;
+                }
                 statCards[2].textContent = onLeaveCount;
 
                 // Quản lý (admin)
                 statCards[3].textContent = stats.admin_count || 0;
             }
+        } else {
+            // Nếu API không trả về success
+            setDefaultStatistics();
         }
     } catch (error) {
         console.error('Lỗi khi cập nhật thống kê:', error);
+        setDefaultStatistics();
     }
 }
 
+// Hàm đặt giá trị mặc định cho thống kê
+function setDefaultStatistics() {
+    const statCards = document.querySelectorAll('.stat-card .stat-number');
+    if (statCards.length >= 4) {
+        statCards[0].textContent = 0;
+        statCards[1].textContent = 0;
+        statCards[2].textContent = 0;
+        statCards[3].textContent = 0;
+    }
+}
 // ========= HÀM LẤY MÀU NGẪU NHIÊN CHO AVATAR =========
 function getRandomColor() {
     const colors = [
@@ -625,7 +746,15 @@ async function viewEmployee(id) {
 
 // ========= HÀM MỞ MODAL THÊM/CHỈNH SỬA/XEM =========
 function openStaffModal(mode, employee = null) {
-    if (!staffModal) return;
+    if (!staffModal) {
+        console.error('staffModal không tồn tại');
+        return;
+    }
+
+    if (!staffForm) {
+        console.error('staffForm không tồn tại');
+        return;
+    }
 
     // Reset form
     staffForm.reset();
@@ -637,37 +766,43 @@ function openStaffModal(mode, employee = null) {
     }
 
     // Đặt tiêu đề modal
-    if (mode === 'add') {
-        modalTitle.textContent = 'Thêm Nhân Viên Mới';
-        currentStaffId = null;
+    if (modalTitle) {
+        if (mode === 'add') {
+            modalTitle.textContent = 'Thêm Nhân Viên Mới';
+            currentStaffId = null;
 
-        // Hiển thị field password khi thêm mới
-        const passwordField = document.getElementById('staffPassword');
-        if (passwordField) {
-            passwordField.closest('.form-group').style.display = 'block';
-            passwordField.required = true;
-        }
-    } else if (mode === 'edit') {
-        modalTitle.textContent = 'Chỉnh Sửa Nhân Viên';
-        currentStaffId = employee.id;
-        fillFormWithEmployeeData(employee);
+            // Hiển thị field password khi thêm mới
+            const passwordField = document.getElementById('staffPassword');
+            if (passwordField && passwordField.closest('.form-group')) {
+                passwordField.closest('.form-group').style.display = 'block';
+                passwordField.required = true;
+            }
+        } else if (mode === 'edit') {
+            modalTitle.textContent = 'Chỉnh Sửa Nhân Viên';
+            currentStaffId = employee ? employee.id : null;
+            if (employee) {
+                fillFormWithEmployeeData(employee);
+            }
 
-        // Ẩn field password khi chỉnh sửa
-        const passwordField = document.getElementById('staffPassword');
-        if (passwordField) {
-            passwordField.closest('.form-group').style.display = 'none';
-            passwordField.required = false;
-        }
-    } else if (mode === 'view') {
-        modalTitle.textContent = 'Chi Tiết Nhân Viên';
-        currentStaffId = employee.id;
-        fillFormWithEmployeeData(employee);
-        setFormReadOnly(true);
+            // Ẩn field password khi chỉnh sửa
+            const passwordField = document.getElementById('staffPassword');
+            if (passwordField && passwordField.closest('.form-group')) {
+                passwordField.closest('.form-group').style.display = 'none';
+                passwordField.required = false;
+            }
+        } else if (mode === 'view') {
+            modalTitle.textContent = 'Chi Tiết Nhân Viên';
+            currentStaffId = employee ? employee.id : null;
+            if (employee) {
+                fillFormWithEmployeeData(employee);
+            }
+            setFormReadOnly(true);
 
-        // Ẩn field password khi xem
-        const passwordField = document.getElementById('staffPassword');
-        if (passwordField) {
-            passwordField.closest('.form-group').style.display = 'none';
+            // Ẩn field password khi xem
+            const passwordField = document.getElementById('staffPassword');
+            if (passwordField && passwordField.closest('.form-group')) {
+                passwordField.closest('.form-group').style.display = 'none';
+            }
         }
     }
 
@@ -683,28 +818,46 @@ function openStaffModal(mode, employee = null) {
 
 // ========= HÀM ĐIỀN DỮ LIỆU NHÂN VIÊN VÀO FORM =========
 function fillFormWithEmployeeData(employee) {
-    if (!employee) return;
+    if (!employee) {
+        console.warn('Không có dữ liệu nhân viên để điền vào form');
+        return;
+    }
 
-    document.getElementById('staffName').value = employee.full_name || '';
-    document.getElementById('staffCode').value = employee.username || '';
-    document.getElementById('staffEmail').value = employee.email || '';
-    document.getElementById('staffPhone').value = employee.phone || '';
-    document.getElementById('staffRole').value = employee.role || 'employee';
+    const staffName = document.getElementById('staffName');
+    const staffCode = document.getElementById('staffCode');
+    const staffEmail = document.getElementById('staffEmail');
+    const staffPhone = document.getElementById('staffPhone');
+    const staffRole = document.getElementById('staffRole');
+
+    if (staffName) staffName.value = employee.full_name || '';
+    if (staffCode) staffCode.value = employee.username || '';
+    if (staffEmail) staffEmail.value = employee.email || '';
+    if (staffPhone) staffPhone.value = employee.phone || '';
+    if (staffRole) staffRole.value = employee.role || 'employee';
 
     // Chuyển đổi position từ backend sang frontend để hiển thị đúng
-    let positionValue = employee.position || 'staff';
-    if (positionValue === 'Sell') positionValue = 'sales';
-    else if (positionValue === 'Warehouse employee') positionValue = 'warehouse';
-    else if (positionValue === 'Accountant') positionValue = 'accounting';
-    document.getElementById('staffDepartment').value = positionValue;
+    const staffDepartment = document.getElementById('staffDepartment');
+    if (staffDepartment) {
+        let positionValue = employee.position || 'staff';
+        if (positionValue === 'Sell') positionValue = 'sales';
+        else if (positionValue === 'Warehouse employee') positionValue = 'warehouse';
+        else if (positionValue === 'Accountant') positionValue = 'accounting';
+        staffDepartment.value = positionValue;
+    }
 
-    document.getElementById('staffSalary').value = employee.salary || 0;
+    const staffSalary = document.getElementById('staffSalary');
+    if (staffSalary) staffSalary.value = employee.salary || 0;
 
     // Format date for input field
-    if (employee.hire_date) {
-        const date = new Date(employee.hire_date);
-        const formattedDate = date.toISOString().split('T')[0];
-        document.getElementById('staffJoinDate').value = formattedDate;
+    const staffJoinDate = document.getElementById('staffJoinDate');
+    if (staffJoinDate && employee.hire_date) {
+        try {
+            const date = new Date(employee.hire_date);
+            const formattedDate = date.toISOString().split('T')[0];
+            staffJoinDate.value = formattedDate;
+        } catch (error) {
+            console.error('Lỗi format ngày:', error);
+        }
     }
 
     // Chuyển đổi status từ backend sang frontend
@@ -712,21 +865,32 @@ function fillFormWithEmployeeData(employee) {
     const statusRadio = document.querySelector(`input[name="staffStatus"][value="${frontendStatus}"]`);
     if (statusRadio) {
         statusRadio.checked = true;
+    } else {
+        // Nếu không tìm thấy radio button, mặc định chọn 'active'
+        const defaultRadio = document.querySelector(`input[name="staffStatus"][value="active"]`);
+        if (defaultRadio) defaultRadio.checked = true;
     }
 
     // Hiển thị avatar nếu có
     if (employee.avatar) {
         const avatarPreview = document.getElementById('avatarPreview');
-        const avatarImg = avatarPreview.querySelector('img');
-        if (avatarImg) {
-            avatarImg.src = employee.avatar;
-            avatarPreview.style.display = 'block';
+        if (avatarPreview) {
+            const avatarImg = avatarPreview.querySelector('img');
+            if (avatarImg) {
+                avatarImg.src = employee.avatar;
+                avatarPreview.style.display = 'block';
+            }
         }
     }
 }
 
 // ========= HÀM ĐẶT FORM Ở CHẾ ĐỈ CHỈ ĐỌC =========
 function setFormReadOnly(readonly) {
+        if (!staffForm) {
+            console.error('staffForm không tồn tại');
+            return;
+        }
+    
     const formElements = staffForm.querySelectorAll('input, select, textarea, button');
     formElements.forEach(element => {
         if (element.type !== 'radio' && element.type !== 'checkbox') {
@@ -860,32 +1024,46 @@ function validateEmployeeData(data, mode = 'add') {
 }
 
 // ========= HÀM XÓA NHÂN VIÊN =========
-async function deleteEmployee(id, employeeName = '') {
-    currentStaffId = id;
+async function deleteEmployeeInternal(id, employeeName = '') {
+    // ✅ Lưu ID dưới dạng số
+    currentStaffId = parseInt(id);
+
+    console.log('[Delete] Setting currentStaffId to:', currentStaffId); // Debug
+
+    const deleteNameEl = document.getElementById('deleteStaffName');
 
     // Nếu có tên nhân viên (khi gọi từ nút xóa)
     if (employeeName) {
-        document.getElementById('deleteStaffName').textContent = employeeName;
+        if (deleteNameEl) deleteNameEl.textContent = employeeName;
     } else {
         // Lấy tên nhân viên từ API
         try {
-            const result = await EmployeesAPI.getById(id);
-            if (result.success) {
-                document.getElementById('deleteStaffName').textContent = result.data.full_name || 'Nhân viên này';
+            const result = await EmployeesAPI.getById(currentStaffId);
+            if (result.success && deleteNameEl) {
+                deleteNameEl.textContent = result.data.full_name || 'Nhân viên này';
             }
         } catch (error) {
             console.error('Lỗi khi lấy thông tin nhân viên:', error);
-            document.getElementById('deleteStaffName').textContent = 'Nhân viên này';
+            if (deleteNameEl) deleteNameEl.textContent = 'Nhân viên này';
         }
     }
 
     // Hiển thị modal xác nhận xóa
-    deleteModal.classList.add('active');
+    if (deleteModal) {
+        deleteModal.classList.add('active');
+    }
 }
 
 // ========= HÀM XÁC NHẬN XÓA NHÂN VIÊN =========
 async function confirmDelete() {
     try {
+        console.log('[Confirm Delete] Deleting staff ID:', currentStaffId); // Debug
+
+        if (!currentStaffId) {
+            showToast('error', 'Lỗi!', 'Không tìm thấy nhân viên để xóa');
+            return;
+        }
+
         const result = await EmployeesAPI.delete(currentStaffId);
         if (result.success) {
             showToast('success', 'Thành công!', 'Xóa nhân viên thành công');
@@ -894,28 +1072,53 @@ async function confirmDelete() {
         }
     } catch (error) {
         console.error('Lỗi khi xóa nhân viên:', error);
-        showToast('error', 'Lỗi!', error.message || 'Không thể xóa nhân viên');
+        
+        // Lấy chi tiết lỗi từ server
+        let errorMessage = 'Không thể xóa nhân viên';
+        const backendMessage = error.response?.data?.message;
+        const statusCode = error.response?.status;
+
+        if (backendMessage) {
+            errorMessage = backendMessage;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        // Thông điệp thân thiện cho lỗi ràng buộc dữ liệu
+        const lowerMsg = errorMessage.toLowerCase();
+        if (statusCode === 400 || lowerMsg.includes('liên quan') || lowerMsg.includes('foreign key') ||
+            lowerMsg.includes('constraint') || lowerMsg.includes('reference')) {
+            errorMessage = 'Không thể xóa vì nhân viên đang được tham chiếu ở dữ liệu khác (hóa đơn, phiếu nhập, chấm công...). Hãy xóa hoặc chuyển dữ liệu liên quan trước.';
+        }
+        
+        showToast('error', 'Lỗi!', errorMessage);
         closeDeleteModal();
     }
 }
 
 // ========= HÀM ĐÓNG MODAL =========
 function closeStaffModal() {
-    staffModal.classList.remove('active');
-    staffForm.reset();
+    if (staffModal) {
+        staffModal.classList.remove('active');
+    }
+    if (staffForm) {
+        staffForm.reset();
+    }
     setFormReadOnly(false);
     currentStaffId = null;
 
     // Hiển thị lại field password
     const passwordField = document.getElementById('staffPassword');
-    if (passwordField) {
+    if (passwordField && passwordField.closest('.form-group')) {
         passwordField.closest('.form-group').style.display = 'block';
         passwordField.required = true;
     }
 }
 
 function closeDeleteModal() {
-    deleteModal.classList.remove('active');
+    if (deleteModal) {
+        deleteModal.classList.remove('active');
+    }
     currentStaffId = null;
 }
 
@@ -1244,6 +1447,7 @@ async function initializeApp() {
     }
 
     // Setup các thành phần
+    setupSidebar();
     setupAvatarUpload();
     setupFilters();
     setupPagination();
@@ -1254,6 +1458,35 @@ async function initializeApp() {
     await loadEmployees();
 
     console.log('Ứng dụng đã được khởi tạo thành công!');
+}
+
+// ========= HÀM TOGGLE SIDEBAR =========
+function setupSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const mainContent = document.querySelector('.main-content');
+
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            if (mainContent) {
+                mainContent.style.marginLeft = sidebar.classList.contains('collapsed') 
+                    ? 'var(--sidebar-collapsed-width)' 
+                    : 'var(--sidebar-width)';
+            }
+        });
+    }
+
+    // Menu items hover effect
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            // Remove active từ tất cả items
+            menuItems.forEach(i => i.classList.remove('active'));
+            // Thêm active vào item được click
+            this.classList.add('active');
+        });
+    });
 }
 
 // ========= CHẠY ỨNG DỤNG KHI TRANG ĐÃ TẢI XONG =========
@@ -1273,15 +1506,18 @@ window.editEmployee = async function (id) {
         showToast('error', 'Lỗi!', 'Không thể tải thông tin nhân viên');
     }
 };
+
+// ✅ Xuất hàm xóa - gọi trực tiếp với ID từ onclick
 window.deleteEmployee = function (id) {
-    // Tìm nhân viên trong danh sách hiện tại để lấy tên
-    const employee = allEmployees.find(emp => emp.id === id);
-    if (employee) {
-        deleteEmployee(id, employee.full_name);
-    } else {
-        deleteEmployee(id);
-    }
+    console.log('[Global deleteEmployee] Called with ID:', id); // Debug
+    const staffId = parseInt(id); // ✅ Chuyển thành số nguyên
+
+    const employee = allEmployees.find(emp => emp.id === staffId);
+    const employeeName = employee ? employee.full_name : '';
+
+    deleteEmployeeInternal(staffId, employeeName);
 };
+
 window.confirmDelete = confirmDelete;
 
 // ========= HÀM ĐĂNG NHẬP (nếu cần) =========
