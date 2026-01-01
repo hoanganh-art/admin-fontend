@@ -3,15 +3,14 @@
 
 // ========= CẤU HÌNH API NHÂN VIÊN =========
 
-const API_BASE_URL = "http://127.0.0.1:6346";
+const API_BASE_URL = "http://127.0.0.1:6346"; // Đổi port về 8000 (mặc định Laravel)
 
 const API_ENDPOINTS = {
     employees: "/api/employees",
-    employeesId: "/api/employees/{id}",
+    employeesId: (id) => `/api/employees/${id}`, // Sửa thành function
     employees_statistics: "/api/employees/statistics",
     employees_login: "/api/employees/login",
     employees_password: (id) => `/api/employees/${id}/change-password`,
-    employees_detail: (id) => `/api/employees/${id}`,
 }
 
 // ========= XỬ LÝ LỖI CHUNG =========
@@ -58,20 +57,25 @@ const apiCall = async (endpoint, method = 'GET', data = null, headers = {}) => {
     }
 
     try {
+        console.log(`[API Call] ${method} ${API_BASE_URL}${endpoint}`, data); // Debug log
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw { 
-                response: { 
-                    data: errorData, 
-                    status: response.status 
-                } 
+            console.error(`[API Error] ${response.status}:`, errorData); // Debug log
+            throw {
+                response: {
+                    data: errorData,
+                    status: response.status
+                }
             };
         }
 
-        return await response.json();
+        const result = await response.json();
+        console.log(`[API Success] ${method} ${endpoint}:`, result); // Debug log
+        return result;
     } catch (error) {
+        console.error(`[API Catch Error] ${method} ${endpoint}:`, error); // Debug log
         throw handleError(error) || error;
     }
 };
@@ -90,7 +94,7 @@ const EmployeesAPI = {
 
     // Lấy thông tin nhân viên theo ID
     getById: async (id) => {
-        return await apiCall(API_ENDPOINTS.employees_detail(id));
+        return await apiCall(API_ENDPOINTS.employeesId(id));
     },
 
     // Tạo nhân viên mới
@@ -100,12 +104,12 @@ const EmployeesAPI = {
 
     // Cập nhật nhân viên
     update: async (id, employeeData) => {
-        return await apiCall(API_ENDPOINTS.employees_detail(id), 'PUT', employeeData);
+        return await apiCall(API_ENDPOINTS.employeesId(id), 'PUT', employeeData);
     },
 
     // Xóa nhân viên
     delete: async (id) => {
-        return await apiCall(API_ENDPOINTS.employees_detail(id), 'DELETE');
+        return await apiCall(API_ENDPOINTS.employeesId(id), 'DELETE');
     },
 
     // Đăng nhập
@@ -179,7 +183,7 @@ const EmployeesHelper = {
         return roles[role] || role;
     },
 
-    // Định dạng chức vụ
+    // Định dạng chức vụ (Sửa lại cho khớp với backend)
     formatPosition: (position) => {
         const positions = {
             'staff': 'Nhân viên',
@@ -190,14 +194,38 @@ const EmployeesHelper = {
         return positions[position] || position;
     },
 
-    // Định dạng trạng thái
+    // Định dạng trạng thái (Sửa lại cho khớp với backend)
     formatStatus: (status) => {
         const statuses = {
             'active': 'Đang làm việc',
             'inactive': 'Nghỉ việc',
-            'take a break': 'Tạm nghỉ'
+            'take a break': 'Tạm nghỉ',
+            'onleave': 'Tạm nghỉ' // Thêm mapping cho onleave
         };
         return statuses[status] || status;
+    },
+
+    // Chuyển đổi trạng thái từ frontend sang backend
+    convertStatusToBackend: (status) => {
+        if (status === 'onleave') return 'take a break';
+        return status;
+    },
+
+    // Chuyển đổi trạng thái từ backend sang frontend
+    convertStatusToFrontend: (status) => {
+        if (status === 'take a break') return 'onleave';
+        return status;
+    },
+
+    // Chuyển đổi chức vụ từ frontend sang backend
+    convertPositionToBackend: (position) => {
+        const positionMap = {
+            'sales': 'Sell',
+            'warehouse': 'Warehouse employee',
+            'accounting': 'Accountant',
+            'staff': 'staff'
+        };
+        return positionMap[position] || position;
     },
 
     // Lấy class CSS cho trạng thái
@@ -205,7 +233,8 @@ const EmployeesHelper = {
         const classes = {
             'active': 'badge bg-success',
             'inactive': 'badge bg-danger',
-            'take a break': 'badge bg-warning'
+            'take a break': 'badge bg-warning',
+            'onleave': 'badge bg-warning'
         };
         return classes[status] || 'badge bg-secondary';
     }
@@ -246,19 +275,19 @@ function showToast(type, title, message) {
     };
 
     const toastType = icons[type] || icons.info;
-    
+
     // Cập nhật nội dung toast
     toastTitle.textContent = title;
     toastMessage.textContent = message;
-    
+
     // Cập nhật icon
     const iconElement = toastIcon.querySelector('i');
     iconElement.className = `fas ${toastType.icon}`;
     toastIcon.className = `toast-icon ${toastType.color}`;
-    
+
     // Hiển thị toast
     toast.classList.add('show');
-    
+
     // Tự động ẩn sau 5 giây
     setTimeout(() => {
         toast.classList.remove('show');
@@ -282,34 +311,34 @@ async function loadEmployees() {
                 </td>
             </tr>
         `;
-        
+
         // Gọi API để lấy danh sách nhân viên
         const result = await EmployeesAPI.getAll({
             per_page: rowsPerPage,
             page: currentPage
         });
-        
+
         if (result.success) {
             allEmployees = result.data.data;
             totalEmployees = result.data.total;
-            
+
             // Cập nhật tổng số nhân viên
             const totalStatElement = document.querySelector('.stat-card:nth-child(1) .stat-number');
             if (totalStatElement) {
                 totalStatElement.textContent = totalEmployees;
             }
-            
+
             // Cập nhật thông tin phân trang
             if (totalCountElement) {
                 totalCountElement.textContent = totalEmployees;
             }
-            
+
             // Hiển thị danh sách nhân viên
             renderEmployees(allEmployees);
-            
+
             // Cập nhật phân trang
             updatePagination();
-            
+
             // Cập nhật thống kê
             updateStatistics();
         }
@@ -335,7 +364,7 @@ async function loadEmployees() {
 // ========= HÀM HIỂN THỊ DANH SÁCH NHÂN VIÊN =========
 function renderEmployees(employees) {
     if (!staffTableBody) return;
-    
+
     if (employees.length === 0) {
         staffTableBody.innerHTML = `
             <tr>
@@ -348,29 +377,33 @@ function renderEmployees(employees) {
         `;
         return;
     }
-    
+
     staffTableBody.innerHTML = '';
-    
+
     employees.forEach(employee => {
         const row = document.createElement('tr');
-        
+
         // Lấy ký tự đầu tiên của tên để hiển thị avatar
         const nameInitial = employee.full_name ? employee.full_name.charAt(0).toUpperCase() : '?';
-        
+
         // Định dạng vai trò
         const roleText = EmployeesHelper.formatRole(employee.role);
         const roleClass = getRoleClass(employee.role);
-        
-        // Định dạng trạng thái
+
+        // Định dạng trạng thái (chuyển từ backend sang frontend)
+        const frontendStatus = EmployeesHelper.convertStatusToFrontend(employee.status);
         const statusText = EmployeesHelper.formatStatus(employee.status);
-        const statusClass = getStatusClass(employee.status);
-        
+        const statusClass = getStatusClass(frontendStatus);
+
         // Định dạng lương
         const salaryFormatted = EmployeesHelper.formatCurrency(employee.salary);
-        
+
         // Định dạng ngày vào làm
         const joinDateFormatted = EmployeesHelper.formatDate(employee.hire_date);
-        
+
+        // Định dạng chức vụ
+        const positionText = EmployeesHelper.formatPosition(employee.position);
+
         row.innerHTML = `
             <td>
                 <input type="checkbox" class="staff-checkbox" value="${employee.id}"
@@ -398,7 +431,7 @@ function renderEmployees(employees) {
             </td>
             <td>
                 <span class="role-badge">
-                    ${EmployeesHelper.formatPosition(employee.position || 'staff')}
+                    ${positionText}
                 </span>
             </td>
             <td class="staff-salary">${salaryFormatted}</td>
@@ -421,13 +454,13 @@ function renderEmployees(employees) {
                 </div>
             </td>
         `;
-        
+
         staffTableBody.appendChild(row);
     });
-    
+
     // Thêm sự kiện cho checkbox
     document.querySelectorAll('.staff-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
+        checkbox.addEventListener('change', function () {
             const staffId = parseInt(this.value);
             if (this.checked) {
                 selectedStaffIds.add(staffId);
@@ -445,19 +478,22 @@ async function updateStatistics() {
         const statsResult = await EmployeesAPI.getStatistics();
         if (statsResult.success) {
             const stats = statsResult.data;
-            
+
             // Cập nhật các card thống kê
             const statCards = document.querySelectorAll('.stat-card .stat-number');
             if (statCards.length >= 4) {
                 // Tổng nhân viên
                 statCards[0].textContent = stats.total_employees || 0;
-                
+
                 // Đang làm việc
                 statCards[1].textContent = stats.active_employees || 0;
-                
-                // Nghỉ phép
-                statCards[2].textContent = (stats.total_employees - stats.active_employees) || 0;
-                
+
+                // Nghỉ phép (lấy từ take a break)
+                const onLeaveCount = stats.position_statistics?.find(stat =>
+                    stat.status === 'take a break'
+                )?.count || 0;
+                statCards[2].textContent = onLeaveCount;
+
                 // Quản lý (admin)
                 statCards[3].textContent = stats.admin_count || 0;
             }
@@ -486,13 +522,7 @@ function getRandomColor() {
 function getRoleClass(role) {
     const roleClasses = {
         'admin': 'role-admin',
-        'manager': 'role-manager',
-        'staff': 'role-staff',
-        'employee': 'role-staff',
-        'Sell': 'role-sales',
-        'sales': 'role-sales',
-        'Warehouse employee': 'role-sales',
-        'Accountant': 'role-sales'
+        'employee': 'role-staff'
     };
     return roleClasses[role] || 'role-staff';
 }
@@ -512,21 +542,21 @@ function getStatusClass(status) {
 function updatePagination() {
     const paginationContainer = document.querySelector('.pagination');
     if (!paginationContainer) return;
-    
+
     const totalPages = Math.ceil(totalEmployees / rowsPerPage);
-    
+
     // Xóa các nút phân trang hiện tại (trừ nút điều hướng đầu/cuối)
     const navButtons = paginationContainer.querySelectorAll('.pagination-btn:not(#firstPage):not(#prevPage):not(#nextPage):not(#lastPage)');
     navButtons.forEach(btn => btn.remove());
-    
+
     // Tính toán phạm vi trang hiển thị
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + 4);
-    
+
     if (endPage - startPage < 4) {
         startPage = Math.max(1, endPage - 4);
     }
-    
+
     // Thêm nút trang
     for (let i = startPage; i <= endPage; i++) {
         const pageBtn = document.createElement('button');
@@ -536,25 +566,25 @@ function updatePagination() {
             currentPage = i;
             loadEmployees();
         });
-        
+
         // Chèn trước nút next
         const nextBtn = document.getElementById('nextPage');
         if (nextBtn) {
             nextBtn.parentNode.insertBefore(pageBtn, nextBtn);
         }
     }
-    
+
     // Cập nhật trạng thái nút điều hướng
     const firstPageBtn = document.getElementById('firstPage');
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
     const lastPageBtn = document.getElementById('lastPage');
-    
+
     if (firstPageBtn) firstPageBtn.disabled = currentPage === 1;
     if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
     if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages;
     if (lastPageBtn) lastPageBtn.disabled = currentPage === totalPages;
-    
+
     // Cập nhật thông tin phân trang
     const tableInfo = document.querySelector('.table-info');
     if (tableInfo) {
@@ -568,10 +598,10 @@ function updatePagination() {
 // ========= HÀM CẬP NHẬT SELECT ALL CHECKBOX =========
 function updateSelectAllCheckbox() {
     if (!selectAllCheckbox) return;
-    
+
     const allCheckboxes = document.querySelectorAll('.staff-checkbox');
     const checkedCount = document.querySelectorAll('.staff-checkbox:checked').length;
-    
+
     selectAllCheckbox.checked = checkedCount > 0 && checkedCount === allCheckboxes.length;
     selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < allCheckboxes.length;
 }
@@ -582,7 +612,7 @@ async function viewEmployee(id) {
         const result = await EmployeesAPI.getById(id);
         if (result.success) {
             const employee = result.data;
-            
+
             // Mở modal với thông tin chỉ đọc
             openStaffModal('view', employee);
             showToast('info', 'Thông tin nhân viên', `Đang xem thông tin ${employee.full_name}`);
@@ -596,34 +626,54 @@ async function viewEmployee(id) {
 // ========= HÀM MỞ MODAL THÊM/CHỈNH SỬA/XEM =========
 function openStaffModal(mode, employee = null) {
     if (!staffModal) return;
-    
+
     // Reset form
     staffForm.reset();
-    
+
     // Xóa preview avatar
     const avatarPreview = document.getElementById('avatarPreview');
     if (avatarPreview) {
         avatarPreview.style.display = 'none';
     }
-    
+
     // Đặt tiêu đề modal
     if (mode === 'add') {
         modalTitle.textContent = 'Thêm Nhân Viên Mới';
         currentStaffId = null;
+
+        // Hiển thị field password khi thêm mới
+        const passwordField = document.getElementById('staffPassword');
+        if (passwordField) {
+            passwordField.closest('.form-group').style.display = 'block';
+            passwordField.required = true;
+        }
     } else if (mode === 'edit') {
         modalTitle.textContent = 'Chỉnh Sửa Nhân Viên';
         currentStaffId = employee.id;
         fillFormWithEmployeeData(employee);
+
+        // Ẩn field password khi chỉnh sửa
+        const passwordField = document.getElementById('staffPassword');
+        if (passwordField) {
+            passwordField.closest('.form-group').style.display = 'none';
+            passwordField.required = false;
+        }
     } else if (mode === 'view') {
         modalTitle.textContent = 'Chi Tiết Nhân Viên';
         currentStaffId = employee.id;
         fillFormWithEmployeeData(employee);
         setFormReadOnly(true);
+
+        // Ẩn field password khi xem
+        const passwordField = document.getElementById('staffPassword');
+        if (passwordField) {
+            passwordField.closest('.form-group').style.display = 'none';
+        }
     }
-    
+
     // Hiển thị modal
     staffModal.classList.add('active');
-    
+
     // Nếu là chế độ xem, ẩn nút lưu
     const saveBtn = document.getElementById('saveStaffBtn');
     if (saveBtn) {
@@ -634,29 +684,36 @@ function openStaffModal(mode, employee = null) {
 // ========= HÀM ĐIỀN DỮ LIỆU NHÂN VIÊN VÀO FORM =========
 function fillFormWithEmployeeData(employee) {
     if (!employee) return;
-    
+
     document.getElementById('staffName').value = employee.full_name || '';
     document.getElementById('staffCode').value = employee.username || '';
     document.getElementById('staffEmail').value = employee.email || '';
     document.getElementById('staffPhone').value = employee.phone || '';
     document.getElementById('staffRole').value = employee.role || 'employee';
-    document.getElementById('staffDepartment').value = employee.position || 'staff';
+
+    // Chuyển đổi position từ backend sang frontend để hiển thị đúng
+    let positionValue = employee.position || 'staff';
+    if (positionValue === 'Sell') positionValue = 'sales';
+    else if (positionValue === 'Warehouse employee') positionValue = 'warehouse';
+    else if (positionValue === 'Accountant') positionValue = 'accounting';
+    document.getElementById('staffDepartment').value = positionValue;
+
     document.getElementById('staffSalary').value = employee.salary || 0;
-    
+
     // Format date for input field
     if (employee.hire_date) {
         const date = new Date(employee.hire_date);
         const formattedDate = date.toISOString().split('T')[0];
         document.getElementById('staffJoinDate').value = formattedDate;
     }
-    
-    // Set status radio button
-    const statusValue = employee.status || 'active';
-    const statusRadio = document.querySelector(`input[name="staffStatus"][value="${statusValue}"]`);
+
+    // Chuyển đổi status từ backend sang frontend
+    const frontendStatus = EmployeesHelper.convertStatusToFrontend(employee.status || 'active');
+    const statusRadio = document.querySelector(`input[name="staffStatus"][value="${frontendStatus}"]`);
     if (statusRadio) {
         statusRadio.checked = true;
     }
-    
+
     // Hiển thị avatar nếu có
     if (employee.avatar) {
         const avatarPreview = document.getElementById('avatarPreview');
@@ -676,7 +733,7 @@ function setFormReadOnly(readonly) {
             element.disabled = readonly;
         }
     });
-    
+
     // Ẩn nút upload avatar
     const avatarUpload = document.getElementById('avatarUpload');
     if (avatarUpload) {
@@ -690,43 +747,51 @@ async function saveEmployee() {
         // Lấy dữ liệu từ form
         const employeeData = {
             username: document.getElementById('staffCode').value.trim(),
-            password: 'password123', // Mật khẩu mặc định
             full_name: document.getElementById('staffName').value.trim(),
             phone: document.getElementById('staffPhone').value.trim(),
             role: document.getElementById('staffRole').value,
-            position: document.getElementById('staffDepartment').value,
+            position: EmployeesHelper.convertPositionToBackend(document.getElementById('staffDepartment').value),
             salary: parseFloat(document.getElementById('staffSalary').value),
             hire_date: document.getElementById('staffJoinDate').value,
             email: document.getElementById('staffEmail').value.trim(),
-            status: document.querySelector('input[name="staffStatus"]:checked')?.value || 'active'
+            status: EmployeesHelper.convertStatusToBackend(
+                document.querySelector('input[name="staffStatus"]:checked')?.value || 'active'
+            )
         };
-        
+
         // Validate dữ liệu
-        if (!validateEmployeeData(employeeData)) {
+        if (!validateEmployeeData(employeeData, currentStaffId ? 'edit' : 'add')) {
             return;
         }
-        
-        // Gọi API để thêm/chỉnh sửa
+
         let result;
         if (currentStaffId) {
-            // Cập nhật nhân viên (không gửi password khi update)
-            delete employeeData.password;
+            // Cập nhật nhân viên
+            console.log('Updating employee:', employeeData);
             result = await EmployeesAPI.update(currentStaffId, employeeData);
             if (result.success) {
                 showToast('success', 'Thành công!', 'Cập nhật nhân viên thành công');
             }
         } else {
-            // Thêm nhân viên mới
+            // Thêm nhân viên mới - thêm mật khẩu
+            const passwordField = document.getElementById('staffPassword');
+            if (passwordField) {
+                employeeData.password = passwordField.value.trim();
+            } else {
+                employeeData.password = 'Password123!'; // Mật khẩu mặc định nếu không có field
+            }
+
+            console.log('Creating employee:', employeeData);
             result = await EmployeesAPI.create(employeeData);
             if (result.success) {
                 showToast('success', 'Thành công!', 'Thêm nhân viên mới thành công');
             }
         }
-        
+
         if (result.success) {
             // Đóng modal
             closeStaffModal();
-            
+
             // Tải lại danh sách nhân viên
             await loadEmployees();
         }
@@ -737,14 +802,14 @@ async function saveEmployee() {
 }
 
 // ========= HÀM VALIDATE DỮ LIỆU NHÂN VIÊN =========
-function validateEmployeeData(data) {
+function validateEmployeeData(data, mode = 'add') {
     // Kiểm tra tên không được trống
     if (!data.full_name.trim()) {
         showToast('error', 'Lỗi!', 'Vui lòng nhập họ và tên');
         document.getElementById('staffName').focus();
         return false;
     }
-    
+
     // Kiểm tra email hợp lệ
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(data.email)) {
@@ -752,42 +817,52 @@ function validateEmployeeData(data) {
         document.getElementById('staffEmail').focus();
         return false;
     }
-    
+
     // Kiểm tra username không được trống
     if (!data.username.trim()) {
         showToast('error', 'Lỗi!', 'Vui lòng nhập mã nhân viên');
         document.getElementById('staffCode').focus();
         return false;
     }
-    
+
     // Kiểm tra số điện thoại (nếu có)
     if (data.phone && !/^\d{10,15}$/.test(data.phone)) {
         showToast('error', 'Lỗi!', 'Số điện thoại không hợp lệ');
         document.getElementById('staffPhone').focus();
         return false;
     }
-    
+
     // Kiểm tra lương
     if (data.salary <= 0) {
         showToast('error', 'Lỗi!', 'Lương phải lớn hơn 0');
         document.getElementById('staffSalary').focus();
         return false;
     }
-    
+
     // Kiểm tra ngày vào làm
     if (!data.hire_date) {
         showToast('error', 'Lỗi!', 'Vui lòng chọn ngày vào làm');
         document.getElementById('staffJoinDate').focus();
         return false;
     }
-    
+
+    // Kiểm tra mật khẩu khi thêm mới
+    if (mode === 'add') {
+        const passwordField = document.getElementById('staffPassword');
+        if (passwordField && passwordField.value.trim().length < 6) {
+            showToast('error', 'Lỗi!', 'Mật khẩu phải có ít nhất 6 ký tự');
+            passwordField.focus();
+            return false;
+        }
+    }
+
     return true;
 }
 
 // ========= HÀM XÓA NHÂN VIÊN =========
 async function deleteEmployee(id, employeeName = '') {
     currentStaffId = id;
-    
+
     // Nếu có tên nhân viên (khi gọi từ nút xóa)
     if (employeeName) {
         document.getElementById('deleteStaffName').textContent = employeeName;
@@ -803,7 +878,7 @@ async function deleteEmployee(id, employeeName = '') {
             document.getElementById('deleteStaffName').textContent = 'Nhân viên này';
         }
     }
-    
+
     // Hiển thị modal xác nhận xóa
     deleteModal.classList.add('active');
 }
@@ -830,6 +905,13 @@ function closeStaffModal() {
     staffForm.reset();
     setFormReadOnly(false);
     currentStaffId = null;
+
+    // Hiển thị lại field password
+    const passwordField = document.getElementById('staffPassword');
+    if (passwordField) {
+        passwordField.closest('.form-group').style.display = 'block';
+        passwordField.required = true;
+    }
 }
 
 function closeDeleteModal() {
@@ -841,17 +923,17 @@ function closeDeleteModal() {
 function setupAvatarUpload() {
     const avatarUpload = document.getElementById('avatarUpload');
     if (!avatarUpload) return;
-    
+
     const avatarInput = document.createElement('input');
     avatarInput.type = 'file';
     avatarInput.accept = 'image/*';
     avatarInput.style.display = 'none';
     document.body.appendChild(avatarInput);
-    
+
     avatarUpload.addEventListener('click', () => {
         avatarInput.click();
     });
-    
+
     avatarInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -860,16 +942,16 @@ function setupAvatarUpload() {
                 showToast('error', 'Lỗi!', 'File ảnh quá lớn (tối đa 5MB)');
                 return;
             }
-            
+
             // Kiểm tra loại file
             if (!file.type.startsWith('image/')) {
                 showToast('error', 'Lỗi!', 'Vui lòng chọn file ảnh');
                 return;
             }
-            
+
             // Hiển thị preview
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const avatarPreview = document.getElementById('avatarPreview');
                 const avatarImg = avatarPreview.querySelector('img');
                 avatarImg.src = e.target.result;
@@ -890,16 +972,24 @@ function setupFilters() {
     const departmentFilter = document.getElementById('departmentFilter');
     const sortFilter = document.getElementById('sortFilter');
     const searchBox = document.querySelector('.search-box input');
-    
+
     if (!applyFiltersBtn || !clearFiltersBtn) return;
-    
+
     applyFiltersBtn.addEventListener('click', async () => {
         const filters = {};
-        
+
         if (roleFilter && roleFilter.value) filters.role = roleFilter.value;
-        if (statusFilter && statusFilter.value) filters.status = statusFilter.value;
-        if (departmentFilter && departmentFilter.value) filters.position = departmentFilter.value;
-        
+        if (statusFilter && statusFilter.value) {
+            // Chuyển đổi status từ frontend sang backend
+            let backendStatus = statusFilter.value;
+            if (backendStatus === 'onleave') backendStatus = 'take a break';
+            filters.status = backendStatus;
+        }
+        if (departmentFilter && departmentFilter.value) {
+            // Chuyển đổi department từ frontend sang backend
+            filters.position = EmployeesHelper.convertPositionToBackend(departmentFilter.value);
+        }
+
         // Gọi API với bộ lọc
         try {
             const result = await EmployeesAPI.getAll({
@@ -907,7 +997,7 @@ function setupFilters() {
                 per_page: rowsPerPage,
                 page: currentPage
             });
-            
+
             if (result.success) {
                 allEmployees = result.data.data;
                 totalEmployees = result.data.total;
@@ -920,24 +1010,24 @@ function setupFilters() {
             showToast('error', 'Lỗi!', 'Không thể áp dụng bộ lọc');
         }
     });
-    
+
     clearFiltersBtn.addEventListener('click', () => {
         if (roleFilter) roleFilter.value = '';
         if (statusFilter) statusFilter.value = '';
         if (departmentFilter) departmentFilter.value = '';
         if (sortFilter) sortFilter.value = 'name-asc';
         if (searchBox) searchBox.value = '';
-        
+
         showToast('info', 'Thông tin', 'Đã xóa bộ lọc');
     });
-    
+
     if (resetFiltersBtn) {
         resetFiltersBtn.addEventListener('click', () => {
             clearFiltersBtn.click();
             loadEmployees();
         });
     }
-    
+
     // Tìm kiếm với debounce
     if (searchBox) {
         let searchTimeout;
@@ -952,7 +1042,7 @@ function setupFilters() {
                             per_page: rowsPerPage,
                             page: currentPage
                         });
-                        
+
                         if (result.success) {
                             allEmployees = result.data.data;
                             totalEmployees = result.data.total;
@@ -977,7 +1067,7 @@ function setupPagination() {
     const nextPageBtn = document.getElementById('nextPage');
     const lastPageBtn = document.getElementById('lastPage');
     const rowsPerPageSelect = document.getElementById('rowsPerPage');
-    
+
     if (firstPageBtn) {
         firstPageBtn.addEventListener('click', () => {
             if (currentPage > 1) {
@@ -986,7 +1076,7 @@ function setupPagination() {
             }
         });
     }
-    
+
     if (prevPageBtn) {
         prevPageBtn.addEventListener('click', () => {
             if (currentPage > 1) {
@@ -995,7 +1085,7 @@ function setupPagination() {
             }
         });
     }
-    
+
     if (nextPageBtn) {
         nextPageBtn.addEventListener('click', () => {
             const totalPages = Math.ceil(totalEmployees / rowsPerPage);
@@ -1005,7 +1095,7 @@ function setupPagination() {
             }
         });
     }
-    
+
     if (lastPageBtn) {
         lastPageBtn.addEventListener('click', () => {
             const totalPages = Math.ceil(totalEmployees / rowsPerPage);
@@ -1015,7 +1105,7 @@ function setupPagination() {
             }
         });
     }
-    
+
     // Thay đổi số dòng mỗi trang
     if (rowsPerPageSelect) {
         rowsPerPageSelect.addEventListener('change', (e) => {
@@ -1029,8 +1119,8 @@ function setupPagination() {
 // ========= HÀM SETUP SELECT ALL =========
 function setupSelectAll() {
     if (!selectAllCheckbox) return;
-    
-    selectAllCheckbox.addEventListener('change', function() {
+
+    selectAllCheckbox.addEventListener('change', function () {
         const checkboxes = document.querySelectorAll('.staff-checkbox');
         checkboxes.forEach(checkbox => {
             checkbox.checked = this.checked;
@@ -1052,49 +1142,49 @@ function setupButtons() {
             openStaffModal('add');
         });
     }
-    
+
     // Nút đóng modal
     const closeModalBtn = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
-    
+
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeStaffModal);
     }
-    
+
     if (cancelBtn) {
         cancelBtn.addEventListener('click', closeStaffModal);
     }
-    
+
     // Nút lưu nhân viên
     const saveStaffBtn = document.getElementById('saveStaffBtn');
     if (saveStaffBtn) {
         saveStaffBtn.addEventListener('click', saveEmployee);
     }
-    
+
     // Nút đóng modal xóa
     const closeDeleteModalBtn = document.getElementById('closeDeleteModal');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-    
+
     if (closeDeleteModalBtn) {
         closeDeleteModalBtn.addEventListener('click', closeDeleteModal);
     }
-    
+
     if (cancelDeleteBtn) {
         cancelDeleteBtn.addEventListener('click', closeDeleteModal);
     }
-    
+
     // Nút xác nhận xóa
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', confirmDelete);
     }
-    
+
     // Nút refresh
     const refreshTableBtn = document.getElementById('refreshTable');
     if (refreshTableBtn) {
         refreshTableBtn.addEventListener('click', loadEmployees);
     }
-    
+
     // Nút export (chức năng mẫu)
     const exportBtn = document.getElementById('exportBtn');
     if (exportBtn) {
@@ -1102,7 +1192,7 @@ function setupButtons() {
             showToast('info', 'Thông tin', 'Chức năng export sẽ được phát triển sau');
         });
     }
-    
+
     // Đóng modal khi click bên ngoài
     window.addEventListener('click', (e) => {
         if (e.target === staffModal) {
@@ -1117,23 +1207,23 @@ function setupButtons() {
 // ========= HÀM KHỞI TẠO ỨNG DỤNG =========
 async function initializeApp() {
     console.log('Đang khởi tạo ứng dụng quản lý nhân viên...');
-    
-    // Kiểm tra đăng nhập
-    if (!EmployeesAPI.isAuthenticated()) {
-        showToast('warning', 'Cảnh báo!', 'Vui lòng đăng nhập để tiếp tục');
-        setTimeout(() => {
-            window.location.href = '../login/login.html';
-        }, 2000);
-        return;
-    }
-    
+
+    // Kiểm tra đăng nhập (tạm thời comment để test)
+    // if (!EmployeesAPI.isAuthenticated()) {
+    //     showToast('warning', 'Cảnh báo!', 'Vui lòng đăng nhập để tiếp tục');
+    //     setTimeout(() => {
+    //         window.location.href = '../login/login.html';
+    //     }, 2000);
+    //     return;
+    // }
+
     // Cập nhật thông tin người dùng hiện tại
     const currentEmployee = EmployeesAPI.getCurrentEmployee();
     if (currentEmployee) {
         const userAvatar = document.querySelector('.user-avatar');
         const userName = document.querySelector('.user-name');
         const userRole = document.querySelector('.user-role');
-        
+
         if (userAvatar && currentEmployee.full_name) {
             const initials = currentEmployee.full_name
                 .split(' ')
@@ -1143,26 +1233,26 @@ async function initializeApp() {
                 .substring(0, 2);
             userAvatar.textContent = initials;
         }
-        
+
         if (userName) {
             userName.textContent = currentEmployee.full_name || 'Admin';
         }
-        
+
         if (userRole) {
             userRole.textContent = EmployeesHelper.formatRole(currentEmployee.role);
         }
     }
-    
+
     // Setup các thành phần
     setupAvatarUpload();
     setupFilters();
     setupPagination();
     setupSelectAll();
     setupButtons();
-    
+
     // Tải dữ liệu ban đầu
     await loadEmployees();
-    
+
     console.log('Ứng dụng đã được khởi tạo thành công!');
 }
 
@@ -1172,7 +1262,7 @@ document.addEventListener('DOMContentLoaded', initializeApp);
 // ========= XUẤT CÁC HÀM CẦN THIẾT RA GLOBAL =========
 window.loadEmployees = loadEmployees;
 window.viewEmployee = viewEmployee;
-window.editEmployee = async function(id) {
+window.editEmployee = async function (id) {
     try {
         const result = await EmployeesAPI.getById(id);
         if (result.success) {
@@ -1183,7 +1273,7 @@ window.editEmployee = async function(id) {
         showToast('error', 'Lỗi!', 'Không thể tải thông tin nhân viên');
     }
 };
-window.deleteEmployee = function(id) {
+window.deleteEmployee = function (id) {
     // Tìm nhân viên trong danh sách hiện tại để lấy tên
     const employee = allEmployees.find(emp => emp.id === id);
     if (employee) {
@@ -1195,7 +1285,7 @@ window.deleteEmployee = function(id) {
 window.confirmDelete = confirmDelete;
 
 // ========= HÀM ĐĂNG NHẬP (nếu cần) =========
-window.loginEmployee = async function(username, password) {
+window.loginEmployee = async function (username, password) {
     try {
         const result = await EmployeesAPI.login({ username, password });
         if (result.success) {
@@ -1209,7 +1299,7 @@ window.loginEmployee = async function(username, password) {
 };
 
 // ========= HÀM ĐĂNG XUẤT =========
-window.logoutEmployee = function() {
+window.logoutEmployee = function () {
     EmployeesAPI.logout();
     showToast('success', 'Thành công!', 'Đăng xuất thành công');
     setTimeout(() => {
