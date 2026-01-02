@@ -46,6 +46,8 @@ body {
     color: var(--dark-color);
     overflow-x: hidden;
     min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* Layout chính */
@@ -53,6 +55,9 @@ body {
     display: flex;
     min-height: 100vh;
     position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* Sidebar - Glassmorphism Design */
@@ -234,10 +239,14 @@ body {
     margin-left: var(--sidebar-width);
     transition: var(--transition);
     min-height: 100vh;
+    width: 100%;
+    max-width: calc(100vw - var(--sidebar-width));
+    overflow-x: hidden;
 }
 
 .sidebar.collapsed~.main-content {
     margin-left: var(--sidebar-collapsed-width);
+    max-width: calc(100vw - var(--sidebar-collapsed-width));
 }
 
 /* Header - Glassmorphism */
@@ -254,6 +263,10 @@ body {
     top: 0;
     z-index: 999;
     border-bottom: 1px solid var(--glass-border);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .header-left h1 {
@@ -267,6 +280,9 @@ body {
     display: flex;
     align-items: center;
     gap: 24px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
 }
 
 .search-box {
@@ -275,7 +291,8 @@ body {
     background: var(--gray-100);
     border-radius: 50px;
     padding: 12px 20px;
-    width: 320px;
+    width: 280px;
+    max-width: calc(100% - 60px);
     transition: var(--transition);
     border: 1px solid transparent;
 }
@@ -406,14 +423,19 @@ body {
 /* Nội dung Dashboard */
 .dashboard-content {
     padding: 32px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 /* Stats Cards - Glassmorphism */
 .stats-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 24px;
     margin-bottom: 40px;
+    width: 100%;
 }
 
 .stat-card {

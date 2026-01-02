@@ -259,6 +259,10 @@ body {
     top: 0;
     z-index: 999;
     border-bottom: 1px solid var(--glass-border);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .header-left h1 {
@@ -295,6 +299,9 @@ body {
     display: flex;
     align-items: center;
     gap: 24px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
 }
 
 .search-box {
@@ -303,7 +310,8 @@ body {
     background: var(--gray-100);
     border-radius: 50px;
     padding: 12px 20px;
-    width: 320px;
+    width: 280px;
+    max-width: calc(100% - 60px);
     transition: var(--transition);
     border: 1px solid transparent;
 }
@@ -434,8 +442,10 @@ body {
 /* Nội dung Đơn Hàng */
 .orders-content {
     padding: 32px;
-    max-width: 100%; /* Thêm */
-    overflow-x: hidden; /* Thêm */
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 /* Page Header với Actions */

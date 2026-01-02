@@ -21,6 +21,7 @@ let currentFilters = {
     search: ''
 };
 let editingSupplierId = null;
+let isLoading = false;
 
 // ============== HÀM API =================
 
@@ -301,6 +302,9 @@ const suppliersTableBody = document.getElementById('suppliersTableBody');
 // Stat cards
 const statCards = document.querySelectorAll('.stat-number');
 
+// Loading overlay
+let loadingOverlay;
+
 // ============== HÀM KHỞI TẠO ==============
 
 /**
@@ -308,6 +312,7 @@ const statCards = document.querySelectorAll('.stat-number');
  */
 async function init() {
     console.log('Khởi tạo ứng dụng quản lý nhà cung cấp...');
+    createLoadingOverlay();
     await loadSuppliers();
     await updateStats();
     setupEventListeners();
@@ -320,7 +325,7 @@ async function init() {
  */
 async function loadSuppliers() {
     try {
-        showLoading(true);
+        showLoadingState();  // Hiển thị loading
         const response = await fetchSuppliers(currentFilters);
         
         // Xử lý response
@@ -337,9 +342,8 @@ async function loadSuppliers() {
         console.log(`Đã tải ${suppliersData.length} nhà cung cấp`);
     } catch (error) {
         console.error('Lỗi khi tải dữ liệu:', error);
+        showErrorState('Không thể tải dữ liệu nhà cung cấp. Vui lòng thử lại.');
         showToast('Lỗi', 'Không thể tải dữ liệu nhà cung cấp', 'error');
-    } finally {
-        showLoading(false);
     }
 }
 
@@ -358,6 +362,52 @@ async function updateStats() {
     } catch (error) {
         console.error('Lỗi khi cập nhật thống kê:', error);
     }
+}
+
+/**
+ * HÀM 3.5: Hiển thị trạng thái loading dữ liệu
+ */
+function showLoadingState() {
+    if (!suppliersTableBody) return;
+
+    suppliersTableBody.innerHTML = `
+        <tr>
+            <td colspan="8">
+                <div style="text-align: center; padding: 60px 20px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #4361ee; margin-bottom: 20px;"></i>
+                    <h3 style="margin-bottom: 12px; color: #495057;">Đang tải dữ liệu...</h3>
+                    <p style="color: #6c757d;">Vui lòng chờ trong giây lát</p>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+/**
+ * HÀM 3.6: Hiển thị thông báo lỗi
+ */
+function showErrorState(errorMessage) {
+    if (!suppliersTableBody) return;
+
+    suppliersTableBody.innerHTML = `
+        <tr>
+            <td colspan="8">
+                <div style="text-align: center; padding: 60px 20px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #f72585; margin-bottom: 20px;"></i>
+                    <h3 style="margin-bottom: 12px; color: #495057;">Đã xảy ra lỗi</h3>
+                    <p style="color: #6c757d; margin-bottom: 20px;">${errorMessage}</p>
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <button class="btn btn-primary" onclick="loadSuppliers(); renderTable();">
+                            <i class="fas fa-redo"></i> Thử lại
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearAllFilters();">
+                            <i class="fas fa-times"></i> Xóa bộ lọc
+                        </button>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `;
 }
 
 // ============== HÀM RENDER BẢNG ==============
@@ -380,9 +430,9 @@ function renderTable() {
         suppliersTableBody.innerHTML = `
             <tr>
                 <td colspan="8" style="text-align: center; padding: 40px; color: var(--gray-500);">
-                    <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px;"></i>
-                    <h3 style="margin-bottom: 8px;">Không tìm thấy nhà cung cấp</h3>
-                    <p>Thử thay đổi bộ lọc hoặc thêm nhà cung cấp mới</p>
+                    <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; color: var(--gray-400);"></i>
+                    <h3 style="margin-bottom: 8px; font-weight: 600;">Không tìm thấy nhà cung cấp</h3>
+                    <p style="color: var(--gray-500);">Thử thay đổi bộ lọc hoặc thêm nhà cung cấp mới</p>
                 </td>
             </tr>
         `;
@@ -515,7 +565,10 @@ function setupEventListeners() {
     closeToast.addEventListener('click', hideToast);
     
     refreshTable.addEventListener('click', () => {
-        loadSuppliers().then(() => renderTable());
+        loadSuppliers().then(() => {
+            renderTable();
+            showToast('Thành công', 'Đã làm mới dữ liệu', 'success');
+        });
     });
 
     exportBtn.addEventListener('click', () => {
@@ -562,6 +615,14 @@ function setupEventListeners() {
         if (e.target === supplierModal) closeSupplierModal();
         if (e.target === deleteModal) closeDeleteModalFunc();
     });
+
+    // Thêm toggle sidebar
+    const toggleSidebar = document.getElementById('toggleSidebar');
+    if (toggleSidebar) {
+        toggleSidebar.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+        });
+    }
 }
 
 // ============== HÀM MODAL ==============
@@ -581,7 +642,6 @@ function openAddModal() {
  */
 async function editSupplier(id) {
     try {
-        showLoading(true);
         editingSupplierId = id;
 
         const supplier = await fetchSupplierById(id);
@@ -593,8 +653,6 @@ async function editSupplier(id) {
     } catch (error) {
         console.error('Lỗi khi lấy thông tin nhà cung cấp:', error);
         showToast('Lỗi', 'Không thể tải thông tin nhà cung cấp', 'error');
-    } finally {
-        showLoading(false);
     }
 }
 
@@ -655,8 +713,6 @@ async function saveSupplier() {
     }
 
     try {
-        showLoading(true);
-
         const categories = Array.from(supplierCategory.selectedOptions).map(opt => opt.value);
         const status = document.querySelector('input[name="supplierStatus"]:checked').value;
 
@@ -688,12 +744,11 @@ async function saveSupplier() {
         closeSupplierModal();
         await loadSuppliers();
         renderTable();
+        await updateStats();
 
     } catch (error) {
         console.error('Lỗi khi lưu nhà cung cấp:', error);
         showToast('Lỗi', 'Không thể lưu nhà cung cấp', 'error');
-    } finally {
-        showLoading(false);
     }
 }
 
@@ -759,7 +814,6 @@ async function deleteSupplier() {
     if (!supplierId) return;
 
     try {
-        showLoading(true);
         await deleteSupplierAPI(supplierId);
 
         suppliersData = suppliersData.filter(s => s.id != supplierId);
@@ -768,12 +822,11 @@ async function deleteSupplier() {
         closeDeleteModalFunc();
         showToast('Thành công', 'Xóa nhà cung cấp thành công', 'success');
         renderTable();
+        await updateStats();
 
     } catch (error) {
         console.error('Lỗi khi xóa nhà cung cấp:', error);
         showToast('Lỗi', 'Không thể xóa nhà cung cấp', 'error');
-    } finally {
-        showLoading(false);
     }
 }
 
@@ -916,6 +969,26 @@ function updatePagination() {
         btn.style.opacity = btn.disabled ? '0.5' : '1';
         btn.style.cursor = btn.disabled ? 'not-allowed' : 'pointer';
     });
+
+    // Cập nhật số trang hiển thị
+    const pagination = document.querySelector('.pagination');
+    const pageButtons = pagination.querySelectorAll('.pagination-btn:not([id])');
+    
+    // Xóa các nút số trang cũ
+    pageButtons.forEach(btn => btn.remove());
+    
+    // Thêm các nút số trang mới
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.addEventListener('click', () => goToPage(i));
+        
+        pagination.insertBefore(pageBtn, nextPage);
+    }
 }
 
 /**
@@ -932,14 +1005,36 @@ function updateTableInfo(displayedCount) {
 // ============== HÀM TIỆN ÍCH ==============
 
 /**
- * HÀM 25: Hiển thị loading
+ * HÀM 25: Tạo và quản lý loading overlay
  */
-function showLoading(show) {
-    // Có thể thêm spinner nếu cần
+function createLoadingOverlay() {
+    loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="loading-text">Đang tải dữ liệu...</div>
+        </div>
+    `;
+    document.body.appendChild(loadingOverlay);
 }
 
 /**
- * HÀM 26: Hiển thị toast thông báo
+ * HÀM 26: Hiển thị loading
+ */
+function showLoading(show) {
+    isLoading = show;
+    if (loadingOverlay) {
+        if (show) {
+            loadingOverlay.classList.add('active');
+        } else {
+            loadingOverlay.classList.remove('active');
+        }
+    }
+}
+
+/**
+ * HÀM 27: Hiển thị toast thông báo
  */
 function showToast(title, message, type = 'success') {
     const toastIcon = document.getElementById('toastIcon');
@@ -950,18 +1045,22 @@ function showToast(title, message, type = 'success') {
         case 'success':
             toastIcon.className = 'toast-icon success';
             toastIcon.innerHTML = '<i class="fas fa-check"></i>';
+            toastIcon.style.background = 'linear-gradient(45deg, var(--success-color), #3b82f6)';
             break;
         case 'error':
             toastIcon.className = 'toast-icon error';
             toastIcon.innerHTML = '<i class="fas fa-times"></i>';
+            toastIcon.style.background = 'linear-gradient(45deg, var(--danger-color), #dc2626)';
             break;
         case 'warning':
             toastIcon.className = 'toast-icon warning';
             toastIcon.innerHTML = '<i class="fas fa-exclamation"></i>';
+            toastIcon.style.background = 'linear-gradient(45deg, var(--warning-color), #ff9e00)';
             break;
         case 'info':
             toastIcon.className = 'toast-icon info';
             toastIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+            toastIcon.style.background = 'linear-gradient(45deg, var(--info-color), var(--primary-color))';
             break;
     }
 
@@ -973,14 +1072,14 @@ function showToast(title, message, type = 'success') {
 }
 
 /**
- * HÀM 27: Ẩn toast thông báo
+ * HÀM 28: Ẩn toast thông báo
  */
 function hideToast() {
     toast.classList.remove('show');
 }
 
 /**
- * HÀM 28: Debounce function
+ * HÀM 29: Debounce function
  */
 function debounce(func, wait) {
     let timeout;
@@ -995,7 +1094,7 @@ function debounce(func, wait) {
 }
 
 /**
- * HÀM 29: Tạo HTML cho đánh giá sao
+ * HÀM 30: Tạo HTML cho đánh giá sao
  */
 function generateStarRating(rating) {
     let stars = '';
@@ -1016,7 +1115,7 @@ function generateStarRating(rating) {
 }
 
 /**
- * HÀM 30: Lấy tên loại sản phẩm
+ * HÀM 31: Lấy tên loại sản phẩm
  */
 function getCategoryName(categoryCode) {
     const categories = {
@@ -1036,14 +1135,14 @@ function getCategoryName(categoryCode) {
 }
 
 /**
- * HÀM 31: Xem chi tiết nhà cung cấp
+ * HÀM 32: Xem chi tiết nhà cung cấp
  */
 function viewSupplierDetails(id) {
     showToast('Thông báo', 'Chức năng xem chi tiết đang phát triển', 'info');
 }
 
 /**
- * HÀM 32: Chọn/bỏ chọn nhà cung cấp
+ * HÀM 33: Chọn/bỏ chọn nhà cung cấp
  */
 function toggleSupplierSelection(id, isSelected) {
     if (isSelected) {

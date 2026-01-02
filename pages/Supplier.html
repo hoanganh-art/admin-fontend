@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Nhà Cung Cấp - PhoneStore Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/pages/supplier.css">
 </head>
 
@@ -122,7 +122,7 @@
                         <div class="stat-icon total">
                             <i class="fas fa-truck-loading"></i>
                         </div>
-                        <div class="stat-number">18</div>
+                        <div class="stat-number">0</div>
                         <div class="stat-label">Tổng Nhà Cung Cấp</div>
                     </div>
 
@@ -130,7 +130,7 @@
                         <div class="stat-icon active">
                             <i class="fas fa-check-circle"></i>
                         </div>
-                        <div class="stat-number">15</div>
+                        <div class="stat-number">0</div>
                         <div class="stat-label">Đang Hợp Tác</div>
                     </div>
 
@@ -138,7 +138,7 @@
                         <div class="stat-icon inactive">
                             <i class="fas fa-pause-circle"></i>
                         </div>
-                        <div class="stat-number">2</div>
+                        <div class="stat-number">0</div>
                         <div class="stat-label">Tạm Dừng</div>
                     </div>
 
@@ -146,7 +146,7 @@
                         <div class="stat-icon pending">
                             <i class="fas fa-clock"></i>
                         </div>
-                        <div class="stat-number">1</div>
+                        <div class="stat-number">0</div>
                         <div class="stat-label">Chờ Duyệt</div>
                     </div>
                 </div>
@@ -166,7 +166,10 @@
 
                     <div class="filter-grid">
                         <div class="filter-group">
-                            <label class="filter-label">Loại Sản Phẩm</label>
+                            <label class="filter-label">
+                                <i class="fas fa-list"></i>
+                                Loại Sản Phẩm
+                            </label>
                             <select class="filter-select" id="categoryFilter">
                                 <option value="">Tất cả loại sản phẩm</option>
                                 <option value="smartphone">Điện thoại</option>
@@ -179,7 +182,10 @@
                         </div>
 
                         <div class="filter-group">
-                            <label class="filter-label">Trạng Thái</label>
+                            <label class="filter-label">
+                                <i class="fas fa-toggle-on"></i>
+                                Trạng Thái
+                            </label>
                             <select class="filter-select" id="statusFilter">
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="active">Đang hợp tác</option>
@@ -189,7 +195,10 @@
                         </div>
 
                         <div class="filter-group">
-                            <label class="filter-label">Xếp Hạng</label>
+                            <label class="filter-label">
+                                <i class="fas fa-star"></i>
+                                Xếp Hạng
+                            </label>
                             <select class="filter-select" id="ratingFilter">
                                 <option value="">Tất cả xếp hạng</option>
                                 <option value="5">5 sao</option>
@@ -201,7 +210,10 @@
                         </div>
 
                         <div class="filter-group">
-                            <label class="filter-label">Sắp Xếp</label>
+                            <label class="filter-label">
+                                <i class="fas fa-sort"></i>
+                                Sắp Xếp
+                            </label>
                             <select class="filter-select" id="sortFilter">
                                 <option value="name-asc">Tên A-Z</option>
                                 <option value="name-desc">Tên Z-A</option>
@@ -229,10 +241,10 @@
                 <div class="suppliers-table-container">
                     <div class="table-header">
                         <div class="table-info">
-                            Hiển thị <strong>12</strong> trong tổng số <strong>18</strong> nhà cung cấp
+                            Hiển thị <strong>0</strong> trong tổng số <strong>0</strong> nhà cung cấp
                         </div>
                         <div class="table-actions">
-                            <select class="filter-select" style="width: 120px;" id="rowsPerPage">
+                            <select class="filter-select" style="width: 140px;" id="rowsPerPage">
                                 <option value="12">12 dòng/trang</option>
                                 <option value="25">25 dòng/trang</option>
                                 <option value="50">50 dòng/trang</option>
@@ -517,9 +529,32 @@
         </div>
         <button class="toast-close" id="closeToast">&times;</button>
     </div>
+    
     <script src="../js/pager/API/supplier.js"></script>
-    <script type="module">
-       
+    <script>
+        // Thêm hiệu ứng hover cho các card
+        document.addEventListener('DOMContentLoaded', function() {
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Thêm hiệu ứng cho các button
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                });
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
     </script>
 </body>
 
