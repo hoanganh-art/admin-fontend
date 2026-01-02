@@ -483,6 +483,8 @@ function renderEmployees(employees) {
         }
 
         const row = document.createElement('tr');
+        row.setAttribute("data-employee-id", employee.id); // Thêm attribute để dễ tìm row khi xóa
+
 
         // Lấy ký tự đầu tiên của tên để hiển thị avatar
         const nameInitial = employee.full_name ? employee.full_name.charAt(0).toUpperCase() : '?';
@@ -1062,6 +1064,23 @@ async function confirmDelete() {
         if (!currentStaffId) {
             showToast('error', 'Lỗi!', 'Không tìm thấy nhân viên để xóa');
             return;
+        }
+
+        // Tìm row của employee trong table
+        const row = document.querySelector(`tr[data-employee-id="${currentStaffId}"]`);
+        
+        if (row) {
+            // Thêm hiệu ứng shake trước
+            row.classList.add('deleting-shake');
+            
+            // Sau khi shake xong, thêm hiệu ứng slide out
+            setTimeout(() => {
+                row.classList.remove('deleting-shake');
+                row.classList.add('deleting-item');
+            }, 500);
+            
+            // Đợi animation hoàn thành
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         const result = await EmployeesAPI.delete(currentStaffId);

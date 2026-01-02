@@ -234,6 +234,7 @@ async function renderCustomersTable() {
       const initials = getInitials(customer.full_name);
 
       const row = document.createElement("tr");
+      row.setAttribute("data-customer-id", customer.id); // Thêm attribute để dễ tìm row khi xóa
       row.innerHTML = `
                 <td>
                     <input type="checkbox" class="customer-checkbox" data-id="${
@@ -934,6 +935,23 @@ async function editCustomer(customerId) {
 async function deactivateCustomer(customerId) {
   try {
     if (confirm("Bạn có chắc chắn muốn xóa khách hàng này?")) {
+      // Tìm row của customer trong table
+      const row = document.querySelector(`tr[data-customer-id="${customerId}"]`);
+      
+      if (row) {
+        // Thêm hiệu ứng shake trước
+        row.classList.add('deleting-shake');
+        
+        // Sau khi shake xong, thêm hiệu ứng slide out
+        setTimeout(() => {
+          row.classList.remove('deleting-shake');
+          row.classList.add('deleting-item');
+        }, 500);
+        
+        // Đợi animation hoàn thành rồi mới xóa
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
       showToast("Đang xử lý", "Đang xóa khách hàng...", "warning");
 
       await deleteCustomer(customerId);

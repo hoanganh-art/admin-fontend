@@ -452,6 +452,7 @@ function renderTable() {
  */
 function createSupplierRow(supplier) {
     const tr = document.createElement('tr');
+    tr.setAttribute("data-supplier-id", supplier.id); // Thêm attribute để dễ tìm row khi xóa
     const isSelected = selectedSuppliers.has(supplier.id);
 
     let statusClass = '';
@@ -814,6 +815,23 @@ async function deleteSupplier() {
     if (!supplierId) return;
 
     try {
+        // Tìm row của supplier trong table
+        const row = document.querySelector(`tr[data-supplier-id="${supplierId}"]`);
+        
+        if (row) {
+            // Thêm hiệu ứng shake trước
+            row.classList.add('deleting-shake');
+            
+            // Sau khi shake xong, thêm hiệu ứng slide out
+            setTimeout(() => {
+                row.classList.remove('deleting-shake');
+                row.classList.add('deleting-item');
+            }, 500);
+            
+            // Đợi animation hoàn thành
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
         await deleteSupplierAPI(supplierId);
 
         suppliersData = suppliersData.filter(s => s.id != supplierId);

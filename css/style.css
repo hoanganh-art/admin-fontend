@@ -1202,3 +1202,64 @@ body {
         justify-content: center;
     }
 }
+
+/* ========== HIỆU ỨNG XÓA (DELETE ANIMATIONS) ========== */
+/* Animation fade out và slide ra ngoài */
+@keyframes deleteSlideOut {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+}
+
+/* Animation rung nhẹ trước khi xóa */
+@keyframes deleteShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+/* Animation fade out đơn giản */
+@keyframes deleteFadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+/* Class để áp dụng animation */
+.deleting-item {
+    animation: deleteSlideOut 0.5s ease-out forwards;
+    background-color: var(--danger-light) !important;
+}
+
+.deleting-shake {
+    animation: deleteShake 0.5s ease-in-out;
+}
+
+.deleting-fade {
+    animation: deleteFadeOut 0.4s ease-out forwards;
+}
+
+/* Hiệu ứng cho nút xóa khi hover */
+.action-btn.delete:hover {
+    animation: deleteShake 0.3s ease-in-out;
+}

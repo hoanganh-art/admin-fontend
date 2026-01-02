@@ -531,6 +531,7 @@ function renderProductsList(products) {
 
     // Tạo HTML cho mỗi row sản phẩm
     const row = document.createElement("tr");
+    row.setAttribute("data-product-id", productId); // Thêm attribute để dễ tìm row khi xóa
     row.innerHTML = `
       <td><input type="checkbox" class="product-checkbox" data-id="${productId}"></td>
       <td>
@@ -1150,6 +1151,23 @@ async function deleteProduct() {
   if (!productToDelete) return;
 
   try {
+    // Tìm row của product trong table
+    const row = document.querySelector(`tr[data-product-id="${productToDelete}"]`);
+    
+    if (row) {
+      // Thêm hiệu ứng shake trước
+      row.classList.add('deleting-shake');
+      
+      // Sau khi shake xong, thêm hiệu ứng slide out
+      setTimeout(() => {
+        row.classList.remove('deleting-shake');
+        row.classList.add('deleting-item');
+      }, 500);
+      
+      // Đợi animation hoàn thành
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
     const response = await productAPI.deleteProduct(productToDelete);
 
     console.log('🗑️ Delete response:', response);

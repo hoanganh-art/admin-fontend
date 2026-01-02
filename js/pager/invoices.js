@@ -369,6 +369,7 @@ function renderOrdersList(orders) {
       new Date().toISOString();
 
     const row = document.createElement("tr");
+    row.setAttribute("data-order-id", orderId); // Thêm attribute để dễ tìm row khi xóa
     row.innerHTML = `
       <td><input type="checkbox" class="order-checkbox" data-id="${orderId}"></td>
       <td>
@@ -1309,6 +1310,23 @@ async function deleteOrder(orderId) {
   }
   
   try {
+    // Tìm row của order trong table
+    const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+    
+    if (row) {
+      // Thêm hiệu ứng shake trước
+      row.classList.add('deleting-shake');
+      
+      // Sau khi shake xong, thêm hiệu ứng slide out
+      setTimeout(() => {
+        row.classList.remove('deleting-shake');
+        row.classList.add('deleting-item');
+      }, 500);
+      
+      // Đợi animation hoàn thành
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
     const response = await orderAPI.deleteOrder(orderId);
     console.log("✅ Order deleted:", response);
     
