@@ -99,8 +99,10 @@ class ProductAPIService {
                 userMessage = "Lỗi: Thương hiệu không tồn tại. Vui lòng chọn thương hiệu hợp lệ.";
               } else if (errorObj.message.includes('Duplicate entry') || errorObj.message.includes('sku')) {
                 userMessage = "Lỗi: Mã SKU đã tồn tại. Vui lòng sử dụng SKU khác.";
+              } else if (errorObj.message.includes('import_details')) {
+                userMessage = "Không thể xóa sản phẩm này vì nó đã được nhập kho. Vui lòng xóa bản ghi nhập kho trước.";
               } else {
-                userMessage = `Lỗi ràng buộc dữ liệu: ${errorObj.message.substring(0, 200)}`;
+                userMessage = "Lỗi: Sản phẩm này đang được sử dụng ở nơi khác. Vui lòng kiểm tra lại.";
               }
             } else {
               userMessage = "Lỗi server (500)";
