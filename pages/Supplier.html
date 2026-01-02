@@ -488,6 +488,91 @@
         </div>
     </div>
 
+    <!-- Modal Xem Chi Tiết Nhà Cung Cấp -->
+    <div class="modal" id="supplierDetailsModal">
+        <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3 class="modal-title">Chi Tiết Nhà Cung Cấp</h3>
+                <button class="modal-close" id="closeDetailsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <div class="detail-group">
+                            <label class="detail-label">Tên Nhà Cung Cấp</label>
+                            <p class="detail-value" id="detailName">N/A</p>
+                        </div>
+                        <div class="detail-group">
+                            <label class="detail-label">Mã NCC</label>
+                            <p class="detail-value" id="detailCode">N/A</p>
+                        </div>
+                        <div class="detail-group">
+                            <label class="detail-label">Mã Số Thuế</label>
+                            <p class="detail-value" id="detailTax">N/A</p>
+                        </div>
+                        <div class="detail-group">
+                            <label class="detail-label">Email</label>
+                            <p class="detail-value"><a href="#" id="detailEmail" style="color: var(--primary-color); text-decoration: none;">N/A</a></p>
+                        </div>
+                        <div class="detail-group">
+                            <label class="detail-label">Số Điện Thoại</label>
+                            <p class="detail-value"><a href="#" id="detailPhone" style="color: var(--primary-color); text-decoration: none;">N/A</a></p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="detail-group">
+                            <label class="detail-label">Người Đại Diện</label>
+                            <p class="detail-value" id="detailRepresentative">N/A</p>
+                        </div>
+                        <div class="detail-group">
+                            <label class="detail-label">SĐT Người Đại Diện</label>
+                            <p class="detail-value" id="detailRepPhone">N/A</p>
+                        </div>
+                        <div class="detail-group">
+                            <label class="detail-label">Xếp Hạng</label>
+                            <p class="detail-value rating-stars" id="detailRating">N/A</p>
+                        </div>
+                        <div class="detail-group">
+                            <label class="detail-label">Trạng Thái</label>
+                            <p class="detail-value" id="detailStatus">N/A</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <div class="detail-group">
+                        <label class="detail-label">Địa Chỉ</label>
+                        <p class="detail-value" id="detailAddress">N/A</p>
+                    </div>
+                    <div class="detail-group">
+                        <label class="detail-label">Website</label>
+                        <p class="detail-value"><a href="#" target="_blank" id="detailWebsite" style="color: var(--primary-color); text-decoration: none;">N/A</a></p>
+                    </div>
+                    <div class="detail-group">
+                        <label class="detail-label">Loại Sản Phẩm</label>
+                        <div class="category-tags" id="detailCategories">
+                            <!-- Categories sẽ được thêm bằng JS -->
+                        </div>
+                    </div>
+                    <div class="detail-group">
+                        <label class="detail-label">Điều Khoản Thanh Toán</label>
+                        <p class="detail-value" id="detailPaymentTerms">N/A</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeDetailsBtn">
+                    <i class="fas fa-times"></i>
+                    Đóng
+                </button>
+                <button class="btn btn-primary" id="editFromDetailsBtn">
+                    <i class="fas fa-edit"></i>
+                    Chỉnh Sửa
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Xác Nhận Xóa -->
     <div class="modal" id="deleteModal">
         <div class="modal-content" style="max-width: 500px;">
