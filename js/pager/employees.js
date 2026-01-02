@@ -338,19 +338,53 @@ document.getElementById('closeToast')?.addEventListener('click', () => {
     toast.classList.remove('show');
 });
 
-// ========= HÀM LẤY DỮ LIỆU NHÂN VIÊN TỪ API =========
+// ========= HÀM HIỂN THỊ TRẠNG THÁI LOADING =========
+function showLoadingState() {
+    if (!staffTableBody) return;
+
+    staffTableBody.innerHTML = `
+        <tr>
+            <td colspan="8">
+                <div style="text-align: center; padding: 60px 20px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #4361ee; margin-bottom: 20px;"></i>
+                    <h3 style="margin-bottom: 12px; color: #495057;">Đang tải dữ liệu...</h3>
+                    <p style="color: #6c757d;">Vui lòng chờ trong giây lát</p>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+// ========= HÀM HIỂN THỊ TRẠNG THÁI LỖI =========
+function showErrorState(errorMessage) {
+    if (!staffTableBody) return;
+
+    staffTableBody.innerHTML = `
+        <tr>
+            <td colspan="8">
+                <div style="text-align: center; padding: 60px 20px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #f72585; margin-bottom: 20px;"></i>
+                    <h3 style="margin-bottom: 12px; color: #495057;">Đã xảy ra lỗi</h3>
+                    <p style="color: #6c757d; margin-bottom: 20px;">${errorMessage}</p>
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <button class="btn btn-primary" onclick="loadEmployees()">
+                            <i class="fas fa-redo"></i> Thử lại
+                        </button>
+                        <button class="btn btn-secondary" onclick="checkApiStatus()">
+                            <i class="fas fa-server"></i> Kiểm tra API
+                        </button>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
 // ========= HÀM LẤY DỮ LIỆU NHÂN VIÊN TỪ API =========
 async function loadEmployees() {
     try {
         // Hiển thị loading state
-        staffTableBody.innerHTML = `
-            <tr>
-                <td colspan="8" class="empty-state">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Đang tải dữ liệu...</p>
-                </td>
-            </tr>
-        `;
+        showLoadingState();
 
         // Gọi API để lấy danh sách nhân viên
         const result = await EmployeesAPI.getAll({
@@ -408,27 +442,7 @@ async function loadEmployees() {
             : error.message || 'Đã xảy ra lỗi khi tải dữ liệu';
         
         showToast('error', 'Lỗi!', errorMessage);
-        
-        staffTableBody.innerHTML = `
-            <tr>
-                <td colspan="8" class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Không thể tải dữ liệu</h3>
-                    <p>${errorMessage}</p>
-                    <div style="margin-top: 10px;">
-                        <button class="btn btn-primary" onclick="loadEmployees()">
-                            <i class="fas fa-redo"></i>
-                            Thử lại
-                        </button>
-                        <button class="btn btn-secondary" onclick="checkApiStatus()" style="margin-left: 10px;">
-                            <i class="fas fa-server"></i>
-                            Kiểm tra API
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-        
+        showErrorState(errorMessage);
         setDefaultStatistics();
     }
 }
@@ -1475,6 +1489,18 @@ async function initializeApp() {
 
     // Tải dữ liệu ban đầu
     await loadEmployees();
+
+    // Hiệu ứng cho thẻ thống kê
+    document.querySelectorAll(".stat-card").forEach((card, index) => {
+        card.style.opacity = "0";
+        card.style.transform = "translateY(20px)";
+
+        setTimeout(() => {
+            card.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+            card.style.opacity = "1";
+            card.style.transform = "translateY(0)";
+        }, index * 100);
+    });
 
     console.log('Ứng dụng đã được khởi tạo thành công!');
 }

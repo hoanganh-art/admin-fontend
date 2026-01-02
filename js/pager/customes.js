@@ -159,18 +159,53 @@ let toastTitle = null;
 let toastMessage = null;
 const toggleSidebar = document.getElementById("toggleSidebar");
 
+// ========== HÀM HIỂN THỊ TRẠNG THÁI LOADING ==========
+function showLoadingState() {
+  if (!customersTableBody) return;
+
+  customersTableBody.innerHTML = `
+    <tr>
+      <td colspan="7">
+        <div style="text-align: center; padding: 60px 20px;">
+          <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #4361ee; margin-bottom: 20px;"></i>
+          <h3 style="margin-bottom: 12px; color: #495057;">Đang tải dữ liệu...</h3>
+          <p style="color: #6c757d;">Vui lòng chờ trong giây lát</p>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+// ========== HÀM HIỂN THỊ TRẠNG THÁI LỖI ==========
+function showErrorState(errorMessage) {
+  if (!customersTableBody) return;
+
+  customersTableBody.innerHTML = `
+    <tr>
+      <td colspan="7">
+        <div style="text-align: center; padding: 60px 20px;">
+          <i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #f72585; margin-bottom: 20px;"></i>
+          <h3 style="margin-bottom: 12px; color: #495057;">Đã xảy ra lỗi</h3>
+          <p style="color: #6c757d; margin-bottom: 20px;">${errorMessage}</p>
+          <div style="display: flex; gap: 12px; justify-content: center;">
+            <button class="btn btn-primary" onclick="renderCustomersTable()">
+              <i class="fas fa-redo"></i> Thử lại
+            </button>
+            <button class="btn btn-secondary" onclick="clearAllFilters()">
+              <i class="fas fa-times"></i> Xóa bộ lọc
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
 // ========== RENDER BẢNG KHÁCH HÀNG TỪ API ==========
 async function renderCustomersTable() {
   try {
     // Hiển thị loading
-    customersTableBody.innerHTML = `
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 40px;">
-                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary-color); margin-bottom: 16px;"></i>
-                    <p>Đang tải dữ liệu...</p>
-                </td>
-            </tr>
-        `;
+    showLoadingState();
 
     // Gọi API với các tham số filter và phân trang
     const params = {
@@ -179,29 +214,57 @@ async function renderCustomersTable() {
     };
 
     // Thêm search nếu có
-    const searchValue = document.querySelector(".search-box input").value;
+    const searchValue = document.querySelector(".search-box input")?.value;
     if (searchValue) {
       params.search = searchValue;
     }
 
     // Thêm filter membership nếu có
-    const tierValue = document.getElementById("tierFilter").value;
+    const tierValue = document.getElementById("tierFilter")?.value;
     if (tierValue) {
       params.membership = tierValue;
     }
 
     // Thêm filter status nếu có (chọn status thật, không phải gender)
-    const statusValue = document.getElementById("statusFilter").value;
+    const statusValue = document.getElementById("statusFilter")?.value;
     if (statusValue) {
       params.status = statusValue;
     }
 
+    console.log("📤 Calling API with params:", params);
     const response = await getCustomers(params);
+    console.log("📥 API Response:", response);
 
-    apiCustomers = response.data || response; // Xử lý cả 2 trường hợp
-    totalCustomers = response.total || apiCustomers.length;
-    lastPage = response.last_page || Math.ceil(totalCustomers / rowsPerPage);
-    currentPage = response.current_page || currentPage;
+    // Xử lý response linh hoạt hơn
+    if (Array.isArray(response)) {
+      // Response trực tiếp là array
+      apiCustomers = response;
+      totalCustomers = response.length;
+      lastPage = Math.ceil(totalCustomers / rowsPerPage);
+    } else if (response.data && Array.isArray(response.data)) {
+      // Response có cấu trúc { data: [], total: 0 }
+      apiCustomers = response.data;
+      totalCustomers = response.total || response.data.length;
+      lastPage = response.last_page || Math.ceil(totalCustomers / rowsPerPage);
+      currentPage = response.current_page || currentPage;
+    } else if (response.success && response.data) {
+      // Response có cấu trúc { success: true, data: {...} }
+      if (Array.isArray(response.data)) {
+        apiCustomers = response.data;
+        totalCustomers = response.data.length;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        apiCustomers = response.data.data;
+        totalCustomers = response.data.total || response.data.data.length;
+        lastPage = response.data.last_page || Math.ceil(totalCustomers / rowsPerPage);
+      }
+    } else {
+      console.warn("⚠️ Unexpected response format:", response);
+      apiCustomers = [];
+      totalCustomers = 0;
+      lastPage = 1;
+    }
+
+    console.log(`📊 Processed: ${apiCustomers.length} customers, Total: ${totalCustomers}`);
 
     customersTableBody.innerHTML = "";
 
@@ -309,21 +372,8 @@ async function renderCustomersTable() {
     updatePagination();
   } catch (error) {
     console.error("Error rendering customers table:", error);
-    customersTableBody.innerHTML = `
-            <tr>
-                <td colspan="7">
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle" style="color: var(--danger-color);"></i>
-                        <h3>Lỗi tải dữ liệu</h3>
-                        <p>${error.message}</p>
-                        <button class="btn btn-primary" onclick="renderCustomersTable()">
-                            <i class="fas fa-redo"></i>
-                            Thử lại
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
+    showErrorState(error.message || "Không thể tải dữ liệu khách hàng");
+    showToast("Lỗi", error.message || "Không thể tải dữ liệu khách hàng", "error");
   }
 }
 
