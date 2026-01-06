@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Nhà Cung Cấp - PhoneStore Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../css/pages/supplier.css">
 </head>
 
@@ -176,7 +177,7 @@
                                 <option value="tablet">Máy tính bảng</option>
                                 <option value="accessory">Phụ kiện</option>
                                 <option value="watch">Đồng hồ thông minh</option>
-                                <option value="laptop">Laptop</option>
+                                <option value="laptop">Máy tính xách tay</option>
                                 <option value="component">Linh kiện</option>
                             </select>
                         </div>
@@ -367,10 +368,7 @@
                                 <option value="watch">Đồng hồ thông minh</option>
                                 <option value="laptop">Laptop</option>
                                 <option value="component">Linh kiện</option>
-                                <option value="battery">Pin</option>
-                                <option value="charger">Sạc</option>
-                                <option value="case">Ốp lưng</option>
-                                <option value="screen">Màn hình</option>
+
                             </select>
                             <small style="color: var(--gray-500); font-size: 12px; margin-top: 4px;">Giữ Ctrl để chọn
                                 nhiều</small>
@@ -512,11 +510,13 @@
                         </div>
                         <div class="detail-group">
                             <label class="detail-label">Email</label>
-                            <p class="detail-value"><a href="#" id="detailEmail" style="color: var(--primary-color); text-decoration: none;">N/A</a></p>
+                            <p class="detail-value"><a href="#" id="detailEmail"
+                                    style="color: var(--primary-color); text-decoration: none;">N/A</a></p>
                         </div>
                         <div class="detail-group">
                             <label class="detail-label">Số Điện Thoại</label>
-                            <p class="detail-value"><a href="#" id="detailPhone" style="color: var(--primary-color); text-decoration: none;">N/A</a></p>
+                            <p class="detail-value"><a href="#" id="detailPhone"
+                                    style="color: var(--primary-color); text-decoration: none;">N/A</a></p>
                         </div>
                     </div>
                     <div>
@@ -546,7 +546,8 @@
                     </div>
                     <div class="detail-group">
                         <label class="detail-label">Website</label>
-                        <p class="detail-value"><a href="#" target="_blank" id="detailWebsite" style="color: var(--primary-color); text-decoration: none;">N/A</a></p>
+                        <p class="detail-value"><a href="#" target="_blank" id="detailWebsite"
+                                style="color: var(--primary-color); text-decoration: none;">N/A</a></p>
                     </div>
                     <div class="detail-group">
                         <label class="detail-label">Loại Sản Phẩm</label>
@@ -614,17 +615,17 @@
         </div>
         <button class="toast-close" id="closeToast">&times;</button>
     </div>
-    
+
     <script src="../js/pager/API/supplier.js"></script>
     <script>
         // Thêm hiệu ứng hover cho các card
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const statCards = document.querySelectorAll('.stat-card');
             statCards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
+                card.addEventListener('mouseenter', function () {
                     this.style.transform = 'translateY(-8px)';
                 });
-                card.addEventListener('mouseleave', function() {
+                card.addEventListener('mouseleave', function () {
                     this.style.transform = 'translateY(0)';
                 });
             });
@@ -632,10 +633,10 @@
             // Thêm hiệu ứng cho các button
             const buttons = document.querySelectorAll('.btn');
             buttons.forEach(btn => {
-                btn.addEventListener('mouseenter', function() {
+                btn.addEventListener('mouseenter', function () {
                     this.style.transform = 'translateY(-3px)';
                 });
-                btn.addEventListener('mouseleave', function() {
+                btn.addEventListener('mouseleave', function () {
                     this.style.transform = 'translateY(0)';
                 });
             });

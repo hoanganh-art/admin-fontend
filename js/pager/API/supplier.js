@@ -286,7 +286,11 @@ function renderSuppliersList(suppliers) {
         const supplierId = supplier.id || supplier.supplier_id;
         const supplierName = supplier.supplier_name || supplier.name || 'N/A';
         const supplierCode = supplier.code || supplier.supplier_code || 'N/A';
-        const categories = supplier.categories || supplier.category || [];
+        const categories = parseProductTypes(supplier.product_types) || 
+                   supplier.categories || 
+                   supplier.category || 
+                   supplier.product_category || 
+                   supplier.product_type || [];
         const contactInfo = supplier.contact_info || `${supplier.phone || ''}<br>${supplier.email || ''}`;
         const rating = supplier.rating || 0;
         const status = supplier.status || 'active';
@@ -305,6 +309,12 @@ function renderSuppliersList(suppliers) {
                 rawPhoneNumber: supplier.phone_number,
                 representative: representative,
                 rawRepresentative: supplier.representative,
+                categories: categories,
+                rawProductTypes: supplier.product_types,
+                rawCategories: supplier.categories,
+                rawCategory: supplier.category,
+                rawProductCategory: supplier.product_category,
+                rawProductType: supplier.product_type,
                 allFields: Object.keys(supplier)
             });
         }
@@ -313,7 +323,7 @@ function renderSuppliersList(suppliers) {
         let categoryText = "Không xác định";
         if (Array.isArray(categories) && categories.length > 0) {
             categoryText = categories.map(cat => getCategoryText(cat)).join(', ');
-        } else if (typeof categories === 'string') {
+        } else if (typeof categories === 'string' && categories) {
             categoryText = getCategoryText(categories);
         }
 
@@ -333,14 +343,16 @@ function renderSuppliersList(suppliers) {
       <td>
         <div class="supplier-info">
           <div class="supplier-name">${supplierName}</div>
-          <div class="supplier-contact">
-            <small><i class="fas fa-phone"></i> ${phone}</small><br>
-            <small><i class="fas fa-envelope"></i> ${email}</small>
-          </div>
         </div>
       </td>
       <td>${supplierCode}</td>
-      <td>${categoryText}</td>
+      <td>
+  <div class="product-categories">
+    <div class="category-tags">
+      ${getCategoryTags(supplier.product_types)}
+    </div>
+  </div>
+</td>
       <td>
         <div class="contact-info">
           <div><i class="fas fa-phone"></i> ${phone}</div>
@@ -372,6 +384,99 @@ function renderSuppliersList(suppliers) {
     });
 }
 
+/**
+ * 🔄 Parse dữ liệu product_types từ database bị lỗi encoding
+ */
+function parseProductTypes(data) {
+    if (!data) return [];
+    
+    console.log('🔍 Raw product_types data:', data);
+    
+    // 1. Nếu đã là array hợp lệ
+    if (Array.isArray(data)) {
+        return data.filter(item => item && item.trim().length > 0);
+    }
+    
+    // 2. Nếu là string
+    if (typeof data === 'string') {
+        let str = data.trim();
+        
+        // Dọn dẹp ký tự đặc biệt
+        str = str
+            .replace(/\\"/g, '"')      // Thay \" thành "
+            .replace(/\\'/g, "'")      // Thay \' thành '
+            .replace(/[\\]/g, '')      // Xóa \
+            .replace(/[\[\]]/g, '')    // Xóa [ và ]
+            .replace(/\s+/g, ' ')      // Chuẩn hóa khoảng trắng
+            .trim();
+        
+        console.log('🧹 Cleaned string:', str);
+        
+        // Trường hợp 1: ["smartphone", "tablet"]
+        if (str.startsWith('"') && str.endsWith('"')) {
+            str = str.slice(1, -1);
+        }
+        
+        // Trường hợp 2: ['smartphone', 'tablet']
+        if (str.startsWith("'") && str.endsWith("'")) {
+            str = str.slice(1, -1);
+        }
+        
+        // Split bằng dấu phẩy
+        const items = str.split(/[',"]\s*['",]?/)
+            .map(item => item.trim())
+            .filter(item => {
+                // Lọc các giá trị rỗng và từ không cần thiết
+                const cleanItem = item.replace(/['"]/g, '').trim();
+                return cleanItem.length > 0 && 
+                       !['', 'null', 'undefined'].includes(cleanItem.toLowerCase());
+            })
+            .map(item => item.replace(/['"]/g, '').trim());
+        
+        console.log('📦 Parsed items:', items);
+        return items;
+    }
+    
+    return [];
+}
+
+/**
+ * 🏷️ Tạo HTML cho các tag loại sản phẩm
+ */
+function getCategoryTags(categories) {
+    // Parse dữ liệu trước
+    const parsedCategories = parseProductTypes(categories);
+    
+    if (!parsedCategories || parsedCategories.length === 0) {
+        return '<span class="category-tag empty">Không xác định</span>';
+    }
+    
+    // Tạo tag HTML
+    const tags = parsedCategories
+        .filter(cat => cat && cat.trim().length > 0)
+        .map(cat => {
+            const categoryText = getCategoryText(cat);
+            const categoryClass = getCategoryClass(cat);
+            return `<span class="category-tag ${categoryClass}">${categoryText}</span>`;
+        })
+        .join('');
+    
+    return tags || '<span class="category-tag empty">Không xác định</span>';
+}
+
+/**
+ * 🎨 Lấy class CSS cho từng loại sản phẩm
+ */
+function getCategoryClass(category) {
+    const cat = category.toLowerCase();
+    if (cat.includes('smartphone') || cat.includes('phone')) return 'smartphone';
+    if (cat.includes('tablet')) return 'tablet';
+    if (cat.includes('accessory')) return 'accessory';
+    if (cat.includes('laptop')) return 'laptop';
+    if (cat.includes('watch')) return 'watch';
+    if (cat.includes('component')) return 'component';
+    return '';
+}
 /**
  * ⭐ Tạo HTML cho rating stars
  */
@@ -423,14 +528,11 @@ function getCategoryText(category) {
         tablet: "Máy tính bảng",
         accessory: "Phụ kiện",
         watch: "Đồng hồ thông minh",
-        laptop: "Laptop",
+        laptop: "Máy tính xách tay",
         component: "Linh kiện",
-        battery: "Pin",
-        charger: "Sạc",
-        case: "Ốp lưng",
-        screen: "Màn hình"
+        
     };
-    return categoryMap[category] || category || "Không xác định";
+    return categoryMap[category.toLowerCase()] || category || "Không xác định";
 }
 
 /**
@@ -780,7 +882,7 @@ async function editSupplier(supplierId) {
 
         console.log('📥 Response RAW từ API:', response);
         console.log('📊 Response Type:', typeof response);
-        
+
         if (response) {
             console.log('📊 Response Keys:', Object.keys(response));
             if (response.data) {
@@ -994,58 +1096,58 @@ function fillEditForm(supplierData) {
 
     // Bản đồ các trường dữ liệu (hỗ trợ nhiều tên field)
     const fieldMappings = {
-        supplierName: { 
-            keys: ['supplier_name', 'name'], 
+        supplierName: {
+            keys: ['supplier_name', 'name'],
             type: 'text',
             backendKey: 'supplier_name' // Thêm để debug
         },
-        supplierCode: { 
-            keys: ['supplier_code', 'code'], 
+        supplierCode: {
+            keys: ['supplier_code', 'code'],
             type: 'text',
             backendKey: 'supplier_code'
         },
-        supplierTax: { 
-            keys: ['tax_code', 'tax_number'], 
+        supplierTax: {
+            keys: ['tax_code', 'tax_number'],
             type: 'text',
             backendKey: 'tax_code'
         },
-        supplierEmail: { 
-            keys: ['email'], 
+        supplierEmail: {
+            keys: ['email'],
             type: 'email',
             backendKey: 'email'
         },
-        supplierPhone: { 
-            keys: ['company_phone', 'phone', 'phone_number'], 
+        supplierPhone: {
+            keys: ['company_phone', 'phone', 'phone_number'],
             type: 'tel',
             backendKey: 'company_phone'
         },
-        supplierRep: { 
-            keys: ['contact_name', 'representative', 'contact_person'], 
+        supplierRep: {
+            keys: ['contact_name', 'representative', 'contact_person'],
             type: 'text',
             backendKey: 'contact_name'
         },
-        supplierRepPhone: { 
-            keys: ['representative_phone', 'rep_phone'], 
+        supplierRepPhone: {
+            keys: ['representative_phone', 'rep_phone'],
             type: 'tel',
             backendKey: 'representative_phone'
         },
-        supplierAddress: { 
-            keys: ['address'], 
+        supplierAddress: {
+            keys: ['address'],
             type: 'textarea',
             backendKey: 'address'
         },
-        supplierWebsite: { 
-            keys: ['website', 'website_url'], 
+        supplierWebsite: {
+            keys: ['website', 'website_url'],
             type: 'url',
             backendKey: 'website'
         },
-        supplierRating: { 
-            keys: ['rating'], 
+        supplierRating: {
+            keys: ['rating'],
             type: 'number',
             backendKey: 'rating'
         },
-        supplierTerms: { 
-            keys: ['payment_terms', 'terms'], 
+        supplierTerms: {
+            keys: ['payment_terms', 'terms'],
             type: 'text',
             backendKey: 'payment_terms'
         }
