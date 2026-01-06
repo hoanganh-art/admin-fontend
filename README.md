@@ -571,3 +571,5 @@ Tất cả pages hỗ trợ 3 breakpoints:
 ---
 
 *Tài liệu này cung cấp tổng quan toàn diện về dự án PhoneStore Admin Frontend, bao gồm cấu trúc, tiến độ, và hướng dẫn phát triển tiếp theo.*
+
+Người làm: Lê Thanh Hoàng Anh
