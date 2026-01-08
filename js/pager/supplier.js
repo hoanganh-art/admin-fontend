@@ -389,18 +389,18 @@ function renderSuppliersList(suppliers) {
  */
 function parseProductTypes(data) {
     if (!data) return [];
-    
+
     console.log('🔍 Raw product_types data:', data);
-    
+
     // 1. Nếu đã là array hợp lệ
     if (Array.isArray(data)) {
         return data.filter(item => item && item.trim().length > 0);
     }
-    
+
     // 2. Nếu là string
     if (typeof data === 'string') {
         let str = data.trim();
-        
+
         // Dọn dẹp ký tự đặc biệt
         str = str
             .replace(/\\"/g, '"')      // Thay \" thành "
@@ -409,34 +409,34 @@ function parseProductTypes(data) {
             .replace(/[\[\]]/g, '')    // Xóa [ và ]
             .replace(/\s+/g, ' ')      // Chuẩn hóa khoảng trắng
             .trim();
-        
+
         console.log('🧹 Cleaned string:', str);
-        
+
         // Trường hợp 1: ["smartphone", "tablet"]
         if (str.startsWith('"') && str.endsWith('"')) {
             str = str.slice(1, -1);
         }
-        
+
         // Trường hợp 2: ['smartphone', 'tablet']
         if (str.startsWith("'") && str.endsWith("'")) {
             str = str.slice(1, -1);
         }
-        
+
         // Split bằng dấu phẩy
         const items = str.split(/[',"]\s*['",]?/)
             .map(item => item.trim())
             .filter(item => {
                 // Lọc các giá trị rỗng và từ không cần thiết
                 const cleanItem = item.replace(/['"]/g, '').trim();
-                return cleanItem.length > 0 && 
-                       !['', 'null', 'undefined'].includes(cleanItem.toLowerCase());
+                return cleanItem.length > 0 &&
+                    !['', 'null', 'undefined'].includes(cleanItem.toLowerCase());
             })
             .map(item => item.replace(/['"]/g, '').trim());
-        
+
         console.log('📦 Parsed items:', items);
         return items;
     }
-    
+
     return [];
 }
 
@@ -446,11 +446,11 @@ function parseProductTypes(data) {
 function getCategoryTags(categories) {
     // Parse dữ liệu trước
     const parsedCategories = parseProductTypes(categories);
-    
+
     if (!parsedCategories || parsedCategories.length === 0) {
         return '<span class="category-tag empty">Không xác định</span>';
     }
-    
+
     // Tạo tag HTML
     const tags = parsedCategories
         .filter(cat => cat && cat.trim().length > 0)
@@ -460,7 +460,7 @@ function getCategoryTags(categories) {
             return `<span class="category-tag ${categoryClass}">${categoryText}</span>`;
         })
         .join('');
-    
+
     return tags || '<span class="category-tag empty">Không xác định</span>';
 }
 
