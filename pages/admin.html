@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Tin Admin - Phone-Store Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #eef2ff;
+            --secondary-color: #3a0ca3;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+            --dark-color: #2c3e50;
+            --light-color: #f8f9fa;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .header-left h1 {
+            color: var(--dark-color);
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .header-left p {
+            color: var(--gray-600);
+            margin-top: 5px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid white;
+            margin: 0 auto 20px;
+            overflow: hidden;
+            background: var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: var(--gray-600);
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .profile-role {
+            font-size: 14px;
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .profile-info {
+            padding: 30px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .info-content h4 {
+            color: var(--gray-600);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-content p {
+            color: var(--dark-color);
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-inactive {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+
+        .status-break {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+
+        /* Detail Card */
+        .detail-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .card-header h2 {
+            color: var(--dark-color);
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .edit-btn {
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .edit-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Grid Layout */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .info-box {
+            background: var(--gray-100);
+            padding: 20px;
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .info-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-label {
+            color: var(--gray-600);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-value {
+            color: var(--dark-color);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-desc {
+            color: var(--gray-600);
+            font-size: 13px;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+        }
+
+        .icon-salary { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .icon-date { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .icon-role { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .profile-avatar {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Thông Tin Admin</h1>
+                <p>Quản lý và xem thông tin chi tiết tài khoản</p>
+            </div>
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Quay lại Dashboard
+            </a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Profile Card -->
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="adminAvatar">
+                        AT
+                    </div>
+                    <h2 class="profile-name">Admin Tùng</h2>
+                    <div class="profile-role">Quản trị viên</div>
+                </div>
+                <div class="profile-info">
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="info-content">
+                            <h4>Tên đăng nhập</h4>
+                            <p>admin_tung</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="info-content">
+                            <h4>Email</h4>
+                            <p>admin.tung@phonestore.com</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="info-content">
+                            <h4>Số điện thoại</h4>
+                            <p>+84 912 345 678</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                        <div class="info-content">
+                            <h4>Trạng thái</h4>
+                            <span class="status-badge status-active">Đang hoạt động</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Information -->
+            <div class="detail-card">
+                <div class="card-header">
+                    <h2>Thông Tin Chi Tiết</h2>
+                    <button class="edit-btn">
+                        <i class="fas fa-edit"></i>
+                        Chỉnh sửa thông tin
+                    </button>
+                </div>
+
+                <!-- Basic Information Grid -->
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-label">
+                            <i class="fas fa-id-card"></i>
+                            Họ và tên
+                        </div>
+                        <div class="info-value">Nguyễn Văn Tùng</div>
+                        <div class="info-desc">Tên đầy đủ theo CMND</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-label">
+                            <i class="fas fa-briefcase"></i>
+                            Chức vụ
+                        </div>
+                        <div class="info-value">Quản lý cửa hàng</div>
+                        <div class="info-desc">Staff / Sell / Warehouse employee / Accountant</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-label">
+                            <i class="fas fa-shield-alt"></i>
+                            Vai trò hệ thống
+                        </div>
+                        <div class="info-value">Administrator</div>
+                        <div class="info-desc">Quyền quản trị cao nhất</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Ngày vào làm
+                        </div>
+                        <div class="info-value">15/03/2022</div>
+                        <div class="info-desc">Thời gian làm việc: 2 năm 8 tháng</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-label">
+                            <i class="fas fa-money-bill-wave"></i>
+                            Mức lương
+                        </div>
+                        <div class="info-value">25,000,000 VNĐ</div>
+                        <div class="info-desc">Lương cơ bản hàng tháng</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-label">
+                            <i class="fas fa-database"></i>
+                            Trạng thái tài khoản
+                        </div>
+                        <div class="info-value">
+                            <span class="status-badge status-active">Active</span>
+                        </div>
+                        <div class="info-desc">active / inactive / take a break</div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-icon icon-salary">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="stat-value">25,000,000₫</div>
+                        <div class="stat-label">Mức lương hiện tại</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-icon icon-date">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-value">980 ngày</div>
+                        <div class="stat-label">Thâm niên làm việc</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-icon icon-role">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="stat-value">Admin</div>
+                        <div class="stat-label">Cấp độ truy cập</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Xử lý ảnh đại diện
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatar = document.getElementById('adminAvatar');
+            
+            // Mô phỏng dữ liệu từ database
+            const adminData = {
+                username: "admin_tung",
+                full_name: "Nguyễn Văn Tùng",
+                email: "admin.tung@phonestore.com",
+                phone: "+84 912 345 678",
+                role: "admin",
+                position: "Quản lý cửa hàng",
+                salary: "25000000",
+                hire_date: "2022-03-15",
+                status: "active",
+                avatar: null // Có thể là đường dẫn ảnh
+            };
+
+            // Hiển thị avatar (nếu có)
+            if (adminData.avatar) {
+                avatar.innerHTML = `<img src="${adminData.avatar}" alt="Avatar">`;
+            } else {
+                // Hiển thị chữ cái đầu nếu không có ảnh
+                const initials = adminData.full_name
+                    .split(' ')
+                    .map(name => name[0])
+                    .join('')
+                    .toUpperCase();
+                avatar.textContent = initials;
+            }
+
+            // Xử lý nút chỉnh sửa
+            document.querySelector('.edit-btn').addEventListener('click', function() {
+                alert('Chức năng chỉnh sửa thông tin sẽ được cập nhật sau!');
+            });
+
+            // Cập nhật động thông tin
+            function updateAdminInfo() {
+                // Cập nhật các thông tin từ database
+                document.querySelector('.profile-name').textContent = adminData.full_name;
+                document.querySelector('.info-content:nth-child(1) p').textContent = adminData.username;
+                document.querySelector('.info-content:nth-child(2) p').textContent = adminData.email;
+                document.querySelector('.info-content:nth-child(3) p').textContent = adminData.phone;
+                
+                // Cập nhật trạng thái
+                const statusBadge = document.querySelector('.status-badge');
+                if (adminData.status === 'active') {
+                    statusBadge.className = 'status-badge status-active';
+                    statusBadge.textContent = 'Đang hoạt động';
+                } else if (adminData.status === 'inactive') {
+                    statusBadge.className = 'status-badge status-inactive';
+                    statusBadge.textContent = 'Không hoạt động';
+                } else {
+                    statusBadge.className = 'status-badge status-break';
+                    statusBadge.textContent = 'Tạm nghỉ';
+                }
+            }
+
+            updateAdminInfo();
+        });
+    </script>
+</body>
+</html>
