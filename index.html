@@ -8,126 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/user-dropdown.css">
     <script src="/js/auth.js"></script>
-    <style>
-        .user-profile {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-            background: var(--gray-100);
-        }
-
-        .user-profile:hover {
-            background: var(--gray-200);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: var(--dark-color);
-            font-size: 14px;
-        }
-
-        .user-role {
-            font-size: 12px;
-            color: var(--gray-600);
-        }
-
-        /* Dropdown Menu */
-        .user-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 220px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            padding: 8px 0;
-            margin-top: 10px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1000;
-            border: 1px solid var(--gray-200);
-            overflow: hidden;
-        }
-
-        .user-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: var(--gray-700);
-            text-decoration: none;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .dropdown-item:hover {
-            background-color: var(--primary-light);
-            color: var(--primary-color);
-        }
-
-        .dropdown-item i {
-            width: 20px;
-            color: var(--gray-600);
-            font-size: 14px;
-            transition: var(--transition);
-        }
-
-        .dropdown-item:hover i {
-            color: var(--primary-color);
-            transform: scale(1.1);
-        }
-
-        .dropdown-divider {
-            height: 1px;
-            background-color: var(--gray-200);
-            margin: 6px 16px;
-        }
-
-        .dropdown-item.logout {
-            color: var(--danger-color);
-        }
-
-        .dropdown-item.logout:hover {
-            background-color: rgba(231, 76, 60, 0.1);
-            color: var(--danger-color);
-        }
-
-        .dropdown-item.logout:hover i {
-            color: var(--danger-color);
-        }
-    </style>
+    <script src="/js/user-profile.js"></script>
 </head>
 
 <body>
@@ -191,10 +74,10 @@
                         <span class="notification-count">3</span>
                     </div>
                     <div class="user-profile" id="userProfile">
-                        <div class="user-avatar">AT</div>
+                        <div class="user-avatar" id="userAvatar">AT</div>
                         <div class="user-info">
-                            <span class="user-name">Admin Tùng</span>
-                            <span class="user-role">Quản trị viên</span>
+                            <span class="user-name" id="userName">Admin Tùng</span>
+                            <span class="user-role" id="userRole">Quản trị viên</span>
                         </div>
                         <i class="fas fa-chevron-down" id="userDropdownToggle" style="color: var(--gray-500); font-size: 14px;"></i>
                     </div>
@@ -566,79 +449,6 @@
     
     <!-- JavaScript cho user dropdown -->
     <script>
-        // Chờ DOM load xong
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM đã load xong');
-            
-            // Lấy các phần tử
-            const userProfile = document.getElementById('userProfile');
-            const userDropdown = document.getElementById('userDropdown');
-            const userDropdownToggle = document.getElementById('userDropdownToggle');
-            
-            console.log('User Profile:', userProfile);
-            console.log('User Dropdown:', userDropdown);
-            console.log('Dropdown Toggle:', userDropdownToggle);
-            
-            // Kiểm tra xem các phần tử có tồn tại không
-            if (!userProfile || !userDropdown || !userDropdownToggle) {
-                console.error('Không tìm thấy các phần tử cần thiết');
-                return;
-            }
-            
-            // Xử lý click vào user profile
-            userProfile.addEventListener('click', function(event) {
-                console.log('Clicked on user profile');
-                event.stopPropagation();
-                
-                // Toggle hiển thị dropdown
-                userDropdown.classList.toggle('show');
-                
-                // Thay đổi icon mũi tên
-                if (userDropdown.classList.contains('show')) {
-                    userDropdownToggle.classList.remove('fa-chevron-down');
-                    userDropdownToggle.classList.add('fa-chevron-up');
-                    console.log('Dropdown hiển thị');
-                } else {
-                    userDropdownToggle.classList.remove('fa-chevron-up');
-                    userDropdownToggle.classList.add('fa-chevron-down');
-                    console.log('Dropdown ẩn');
-                }
-            });
-            
-            // Đóng dropdown khi click bên ngoài
-            document.addEventListener('click', function(event) {
-                if (!userProfile.contains(event.target) && !userDropdown.contains(event.target)) {
-                    userDropdown.classList.remove('show');
-                    userDropdownToggle.classList.remove('fa-chevron-up');
-                    userDropdownToggle.classList.add('fa-chevron-down');
-                }
-            });
-            
-            // Ngăn chặn dropdown đóng khi click bên trong dropdown
-            userDropdown.addEventListener('click', function(event) {
-                event.stopPropagation();
-            });
-        });
-        
-        // Hàm xử lý cho các item trong dropdown
-        function openProfile() {
-            console.log('Mở trang profile');
-            alert('Mở trang thông tin cá nhân');
-            // Thực tế: window.location.href = '/pages/profile.html';
-        }
-        
-        function openSettings() {
-            console.log('Mở trang settings');
-            alert('Mở trang cài đặt');
-            // Thực tế: window.location.href = '/pages/settings.html';
-        }
-        
-        function logout() {
-            console.log('Đăng xuất');
-            if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                Auth.logout(); // Sử dụng hàm logout từ auth.js
-            }
-        }
     </script>
 
 </html>

@@ -1,0 +1,123 @@
+/* user-dropdown.css - Style cho user profile và dropdown menu */
+
+/* Container cần relative để dropdown absolute hoạt động */
+.header-right {
+    position: relative;
+}
+
+.user-profile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--gray-100);
+}
+
+.user-profile:hover {
+    background: var(--gray-200);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 14px;
+}
+
+.user-role {
+    font-size: 12px;
+    color: var(--gray-600);
+}
+
+/* Dropdown Menu */
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    width: 220px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    padding: 8px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 9999;
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.user-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: var(--gray-700);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+}
+
+.dropdown-item i {
+    width: 20px;
+    color: var(--gray-600);
+    font-size: 14px;
+    transition: var(--transition);
+}
+
+.dropdown-item:hover i {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--gray-200);
+    margin: 6px 16px;
+}
+
+.dropdown-item.logout {
+    color: var(--danger-color);
+}
+
+.dropdown-item.logout:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: var(--danger-color);
+}
+
+.dropdown-item.logout:hover i {
+    color: var(--danger-color);
+}
