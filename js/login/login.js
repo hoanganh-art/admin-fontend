@@ -54,6 +54,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Hiển thị loading state
             showToast('info', 'Đang xử lý...', 'Vui lòng chờ trong giây lát', 30000);
             
+            console.log('🔐 Cố gắng đăng nhập với username:', username);
+            
             // Gọi API đăng nhập
             const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.login}`, {
                 method: 'POST',
@@ -67,6 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const result = await response.json();
+            console.log('📦 Response từ API:', result);
 
             // Xử lý kết quả
             if (!response.ok) {
@@ -74,9 +77,33 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (result.success) {
+                console.log('✅ Đăng nhập thành công');
+                
                 // Lưu thông tin người dùng vào localStorage
-                localStorage.setItem('auth_token', result.data?.token || 'dummy_token');
-                localStorage.setItem('employee_info', JSON.stringify(result.data?.employee || {}));
+                // Chỉ lưu nếu có dữ liệu từ API
+                if (result.data?.token) {
+                    console.log('💾 Lưu token:', result.data.token);
+                    localStorage.setItem('auth_token', result.data.token);
+                } else {
+                    console.warn('⚠️ API không trả về token, sử dụng mock token');
+                    localStorage.setItem('auth_token', 'mock_token_' + Date.now());
+                }
+                
+                if (result.data?.employee) {
+                    console.log('💾 Lưu employee info:', result.data.employee);
+                    localStorage.setItem('employee_info', JSON.stringify(result.data.employee));
+                } else {
+                    console.warn('⚠️ API không trả về employee info, sử dụng mock data');
+                    // Mock employee data nếu API không trả về
+                    const mockEmployee = {
+                        id: 1,
+                        name: username,
+                        email: username + '@company.com',
+                        role: 'admin',
+                        avatar: 'AT'
+                    };
+                    localStorage.setItem('employee_info', JSON.stringify(mockEmployee));
+                }
                 
                 // Lưu thông tin "ghi nhớ đăng nhập" nếu được chọn
                 const rememberMe = document.getElementById('rememberMe').checked;
@@ -88,18 +115,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     localStorage.removeItem('saved_username');
                 }
 
+                console.log('📝 localStorage sau đăng nhập:', {
+                    auth_token: localStorage.getItem('auth_token'),
+                    employee_info: localStorage.getItem('employee_info')
+                });
+
                 // Hiển thị thông báo thành công
                 showToast('success', 'Đăng nhập thành công!', 'Đang chuyển hướng đến trang...', 2000);
 
                 // Chuyển hướng sau 2 giây
                 setTimeout(() => {
+                    console.log('🔄 Redirect đến: ../index.html');
                     window.location.href = "../index.html"; // Hoặc Employee.html
                 }, 2000);
             } else {
                 throw new Error(result.message || 'Đăng nhập thất bại');
             }
         } catch (error) {
-            console.error('Lỗi đăng nhập:', error);
+            console.error('❌ Lỗi đăng nhập:', error);
             
             // Xác định thông báo lỗi phù hợp
             let errorMessage = error.message;

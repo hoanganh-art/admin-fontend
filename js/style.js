@@ -11,7 +11,6 @@ const saveProductBtn = document.getElementById('saveProductBtn'); // Nút lưu s
 const searchInput = document.querySelector('.search-box input'); // Ô tìm kiếm
 const notifications = document.querySelector('.notifications'); // Biểu tượng thông báo
 const revenueChart = document.getElementById('revenueChart'); // Biểu đồ doanh thu
-const userProfile = document.querySelector('.user-profile'); // Phần tử user profile
 const successToast = document.getElementById('successToast'); // Toast thông báo thành công
 const closeToast = document.getElementById('closeToast'); // Nút đóng toast
 
@@ -188,11 +187,41 @@ notifications.addEventListener('click', function () {
     showToast('Thông báo', 'Bạn có 3 thông báo chưa đọc đã được xem.');
 });
 
-// ========== USER PROFILE ==========
-userProfile.addEventListener('click', function () {
-    showToast('Thông tin người dùng', 'Chức năng xem thông tin chi tiết đang được phát triển!');
-});
 
+
+// Hàm hiển thị toast
+function showToast(title, message, type = 'success') {
+    const toast = document.getElementById('successToast');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastIcon = toast.querySelector('.toast-icon i');
+
+    if (toast && toastTitle && toastMessage) {
+        // Cập nhật nội dung
+        toastTitle.textContent = title;
+        toastMessage.textContent = message;
+
+        // Cập nhật icon theo type
+        if (type === 'success') {
+            toastIcon.className = 'fas fa-check';
+            toast.querySelector('.toast-icon').className = 'toast-icon success';
+        } else if (type === 'error') {
+            toastIcon.className = 'fas fa-times';
+            toast.querySelector('.toast-icon').className = 'toast-icon error';
+        } else if (type === 'info') {
+            toastIcon.className = 'fas fa-info-circle';
+            toast.querySelector('.toast-icon').className = 'toast-icon success'; // Dùng success màu xanh cho info
+        }
+
+        // Hiển thị toast
+        toast.classList.add('show');
+
+        // Tự động ẩn sau 3 giây
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+}
 // ========== BIỂU ĐỒ DOANH THU ==========
 function renderRevenueChart() {
     const chartData = [42, 38, 45, 52, 48, 55, 52];
