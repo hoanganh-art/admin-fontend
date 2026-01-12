@@ -1,6 +1,8 @@
 // user-profile.js - Xử lý hiển thị và dropdown user profile cho tất cả các trang
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 user-profile.js loaded');
+    
     // ========== CẬP NHẬT THÔNG TIN USER ==========
     loadUserInfo();
     
@@ -10,19 +12,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== LOAD THÔNG TIN USER TỪ LOCALSTORAGE ==========
 function loadUserInfo() {
+    console.log('📝 Loading user info...');
     try {
         // Lấy thông tin employee từ localStorage
         const employeeInfo = Auth.getEmployeeInfo();
+        console.log('👤 Employee info:', employeeInfo);
         
         if (employeeInfo) {
             // Cập nhật tên
             const userNameElement = document.getElementById('userName');
+            console.log('🔍 userName element:', userNameElement);
             if (userNameElement && employeeInfo.name) {
                 userNameElement.textContent = employeeInfo.name;
+                console.log('✅ Updated userName to:', employeeInfo.name);
             }
             
             // Cập nhật role
             const userRoleElement = document.getElementById('userRole');
+            console.log('🔍 userRole element:', userRoleElement);
             if (userRoleElement) {
                 const roleMap = {
                     'admin': 'Quản trị viên',
@@ -32,10 +39,12 @@ function loadUserInfo() {
                 };
                 const roleName = roleMap[employeeInfo.role] || employeeInfo.role || 'Nhân viên';
                 userRoleElement.textContent = roleName;
+                console.log('✅ Updated userRole to:', roleName);
             }
             
             // Cập nhật avatar
             const userAvatarElement = document.getElementById('userAvatar');
+            console.log('🔍 userAvatar element:', userAvatarElement);
             if (userAvatarElement) {
                 if (employeeInfo.avatar) {
                     userAvatarElement.textContent = employeeInfo.avatar;
@@ -48,11 +57,14 @@ function loadUserInfo() {
                         userAvatarElement.textContent = employeeInfo.name.substring(0, 2);
                     }
                     userAvatarElement.textContent = userAvatarElement.textContent.toUpperCase();
+                    console.log('✅ Updated avatar to:', userAvatarElement.textContent);
                 }
             }
+        } else {
+            console.warn('⚠️ No employee info found in localStorage');
         }
     } catch (error) {
-        console.error('Lỗi khi load thông tin user:', error);
+        console.error('❌ Lỗi khi load thông tin user:', error);
     }
 }
 
