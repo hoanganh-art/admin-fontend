@@ -19,12 +19,28 @@ function loadUserInfo() {
         console.log('👤 Employee info:', employeeInfo);
         
         if (employeeInfo) {
+            // Xác định tên hiển thị với fallback linh hoạt
+            const displayName = (
+                employeeInfo.name ||
+                employeeInfo.fullName ||
+                employeeInfo.full_name ||
+                employeeInfo.employee_name ||
+                employeeInfo.username ||
+                ''
+            ).toString().trim();
+
             // Cập nhật tên
             const userNameElement = document.getElementById('userName');
             console.log('🔍 userName element:', userNameElement);
-            if (userNameElement && employeeInfo.name) {
-                userNameElement.textContent = employeeInfo.name;
-                console.log('✅ Updated userName to:', employeeInfo.name);
+            if (userNameElement) {
+                if (displayName.length > 0) {
+                    userNameElement.textContent = displayName;
+                    console.log('✅ Updated userName to:', displayName);
+                } else {
+                    // Tên chưa có -> đặt tên mặc định dễ hiểu
+                    userNameElement.textContent = 'Quản Trị Viên Hệ Thống';
+                    console.warn('⚠️ displayName is empty, using default name');
+                }
             }
             
             // Cập nhật role
@@ -48,13 +64,14 @@ function loadUserInfo() {
             if (userAvatarElement) {
                 if (employeeInfo.avatar) {
                     userAvatarElement.textContent = employeeInfo.avatar;
-                } else if (employeeInfo.name) {
-                    // Lấy 2 chữ cái đầu của tên
-                    const nameParts = employeeInfo.name.trim().split(' ');
+                } else {
+                    // Lấy 2 chữ cái đầu từ displayName hoặc username
+                    const sourceName = displayName || (employeeInfo.username || '').toString();
+                    const nameParts = sourceName.trim().split(' ');
                     if (nameParts.length >= 2) {
                         userAvatarElement.textContent = nameParts[0][0] + nameParts[nameParts.length - 1][0];
                     } else {
-                        userAvatarElement.textContent = employeeInfo.name.substring(0, 2);
+                        userAvatarElement.textContent = sourceName.substring(0, 2);
                     }
                     userAvatarElement.textContent = userAvatarElement.textContent.toUpperCase();
                     console.log('✅ Updated avatar to:', userAvatarElement.textContent);
