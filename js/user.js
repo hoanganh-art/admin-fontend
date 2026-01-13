@@ -57,22 +57,21 @@ document.addEventListener('DOMContentLoaded', function () {
 // Các hàm xử lý cho dropdown items
 function openProfile() {
     showToast('Mở thông tin cá nhân', 'Đang chuyển hướng đến trang profile...', 'success');
-    // window.location.href = 'profile.html';
+    window.location.href = 'admin.html';
 }
 
 function openSettings() {
     showToast('Mở cài đặt', 'Đang chuyển hướng đến trang cài đặt...', 'info');
-    // window.location.href = 'settings.html';
 }
 
 function logout() {
     if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
         showToast('Đăng xuất thành công', 'Hệ thống đang chuyển hướng...', 'success');
 
-        // Mô phỏng chuyển hướng sau 1.5 giây
+        // Mô phỏng chuyển hướng sau 1 giây
         setTimeout(() => {
             // window.location.href = 'login.html';
             alert('Đã đăng xuất (demo)');
-        }, 1500);
+        }, 1000);
     }
 }

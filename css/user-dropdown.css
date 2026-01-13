@@ -5,6 +5,11 @@
     position: relative;
 }
 
+/* Đảm bảo dropdown không bị cắt bởi header */
+.header {
+    overflow: visible;
+}
+
 .user-profile {
     position: relative;
     display: flex;
