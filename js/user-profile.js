@@ -130,8 +130,16 @@ function initUserDropdown() {
 
 // ========== HÀM XỬ LÝ CHO CÁC ITEM TRONG DROPDOWN ==========
 function openProfile() {
-    alert('Mở trang thông tin cá nhân');
-    // window.location.href = '/pages/profile.html';
+    // Xác định đường dẫn đúng dựa trên vị trí hiện tại
+    const currentPath = window.location.pathname;
+    
+    if (currentPath.includes('/pages/')) {
+        // Đang ở trong thư mục pages, redirect đến cùng cấp
+        window.location.href = 'Informations.html';
+    } else {
+        // Đang ở root hoặc thư mục khác, redirect vào pages
+        window.location.href = 'pages/Informations.html';
+    }
 }
 
 function openSettings() {

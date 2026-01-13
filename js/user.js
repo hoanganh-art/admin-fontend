@@ -56,8 +56,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Các hàm xử lý cho dropdown items
 function openProfile() {
-    showToast('Mở thông tin cá nhân', 'Đang chuyển hướng đến trang profile...', 'success');
-    window.location.href = 'admin.html';
+    // Xác định đường dẫn đúng dựa trên vị trí hiện tại
+    const currentPath = window.location.pathname;
+    
+    if (currentPath.includes('/pages/')) {
+        // Đang ở trong thư mục pages, redirect đến cùng cấp
+        window.location.href = 'Informations.html';
+    } else {
+        // Đang ở root hoặc thư mục khác, redirect vào pages
+        window.location.href = 'pages/Informations.html';
+    }
 }
 
 function openSettings() {

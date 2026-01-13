@@ -409,10 +409,10 @@
       <!-- Header -->
       <div class="header">
         <div class="header-left">
-          <h1>Thông Tin Admin</h1>
+          <h1>Thông Tin Cá Nhân</h1>
           <p>Quản lý và xem thông tin chi tiết tài khoản</p>
         </div>
-        <a href="index.html" class="back-btn">
+        <a href="../index.html" class="back-btn">
           <i class="fas fa-arrow-left"></i>
           Quay lại Dashboard
         </a>
@@ -568,36 +568,72 @@
       </div>
     </div>
 
+    <script src="../js/auth.js"></script>
     <script>
       // Xử lý ảnh đại diện
       document.addEventListener("DOMContentLoaded", function () {
         const avatar = document.getElementById("adminAvatar");
 
-        // Mô phỏng dữ liệu từ database
-        const adminData = {
-          username: "admin_tung",
-          full_name: "Nguyễn Văn Tùng",
-          email: "admin.tung@phonestore.com",
-          phone: "+84 912 345 678",
+        // Lấy dữ liệu thực từ localStorage
+        const employeeInfo = Auth.getEmployeeInfo();
+        console.log("📄 Employee info loaded:", employeeInfo);
+
+        // Fallback nếu không có dữ liệu
+        const adminData = employeeInfo || {
+          username: "admin",
+          name: "Quản Trị Viên",
+          full_name: "Quản Trị Viên Hệ Thống",
+          email: "admin@phonestore.com",
+          phone: "+84 900 000 000",
           role: "admin",
           position: "Quản lý cửa hàng",
           salary: "25000000",
           hire_date: "2022-03-15",
           status: "active",
-          avatar: null, // Có thể là đường dẫn ảnh
+          avatar: null,
         };
 
+        // Chuẩn hóa dữ liệu
+        adminData.full_name =
+          adminData.full_name ||
+          adminData.name ||
+          adminData.username ||
+          "Admin";
+        adminData.email = adminData.email || "N/A";
+        adminData.phone = adminData.phone || adminData.phone_number || "N/A";
+        adminData.username = adminData.username || "admin";
+        adminData.position =
+          adminData.position || adminData.department || "Nhân viên";
+        adminData.salary = adminData.salary || "0";
+        adminData.hire_date =
+          adminData.hire_date ||
+          adminData.created_at ||
+          new Date().toISOString().split("T")[0];
+
         // Hiển thị avatar (nếu có)
-        if (adminData.avatar) {
+        if (
+          adminData.avatar &&
+          adminData.avatar !== null &&
+          typeof adminData.avatar === "string"
+        ) {
           avatar.innerHTML = `<img src="${adminData.avatar}" alt="Avatar">`;
         } else {
           // Hiển thị chữ cái đầu nếu không có ảnh
-          const initials = adminData.full_name
+          const fullName = String(
+            adminData.full_name || adminData.name || "A"
+          ).trim();
+          const nameParts = fullName
             .split(" ")
-            .map((name) => name[0])
-            .join("")
-            .toUpperCase();
-          avatar.textContent = initials;
+            .filter((part) => part.length > 0);
+          let initials = "AT";
+
+          if (nameParts.length >= 2) {
+            initials = nameParts[0][0] + nameParts[nameParts.length - 1][0];
+          } else if (nameParts.length === 1) {
+            initials = nameParts[0].substring(0, 2);
+          }
+
+          avatar.textContent = initials.toUpperCase();
         }
 
         // Xử lý nút chỉnh sửa
@@ -609,28 +645,82 @@
 
         // Cập nhật động thông tin
         function updateAdminInfo() {
-          // Cập nhật các thông tin từ database
+          // Cập nhật các thông tin từ localStorage
           document.querySelector(".profile-name").textContent =
             adminData.full_name;
-          document.querySelector(".info-content:nth-child(1) p").textContent =
-            adminData.username;
-          document.querySelector(".info-content:nth-child(2) p").textContent =
-            adminData.email;
-          document.querySelector(".info-content:nth-child(3) p").textContent =
-            adminData.phone;
+
+          // Cập nhật role/chức vụ
+          const roleMap = {
+            admin: "Quản trị viên",
+            manager: "Quản lý",
+            staff: "Nhân viên",
+            employee: "Nhân viên",
+          };
+          const roleText =
+            roleMap[adminData.role] || adminData.role || "Nhân viên";
+          document.querySelector(".profile-role").textContent = roleText;
+
+          // Cập nhật thông tin bên trái
+          const infoItems = document.querySelectorAll(
+            ".profile-info .info-item .info-content p"
+          );
+          if (infoItems[0]) infoItems[0].textContent = adminData.username;
+          if (infoItems[1]) infoItems[1].textContent = adminData.email;
+          if (infoItems[2]) infoItems[2].textContent = adminData.phone;
 
           // Cập nhật trạng thái
-          const statusBadge = document.querySelector(".status-badge");
-          if (adminData.status === "active") {
-            statusBadge.className = "status-badge status-active";
-            statusBadge.textContent = "Đang hoạt động";
-          } else if (adminData.status === "inactive") {
-            statusBadge.className = "status-badge status-inactive";
-            statusBadge.textContent = "Không hoạt động";
-          } else {
-            statusBadge.className = "status-badge status-break";
-            statusBadge.textContent = "Tạm nghỉ";
+          const statusBadges = document.querySelectorAll(".status-badge");
+          statusBadges.forEach((badge) => {
+            if (adminData.status === "active") {
+              badge.className = "status-badge status-active";
+              badge.textContent = "Đang hoạt động";
+            } else if (adminData.status === "inactive") {
+              badge.className = "status-badge status-inactive";
+              badge.textContent = "Không hoạt động";
+            } else {
+              badge.className = "status-badge status-break";
+              badge.textContent = "Tạm nghỉ";
+            }
+          });
+
+          // Cập nhật detail card (phần bên phải)
+          const infoValues = document.querySelectorAll(".info-box .info-value");
+          if (infoValues[0]) infoValues[0].textContent = adminData.full_name;
+          if (infoValues[1]) infoValues[1].textContent = adminData.position;
+          if (infoValues[2]) infoValues[2].textContent = roleText;
+          if (infoValues[3]) {
+            const hireDate = new Date(adminData.hire_date);
+            if (!isNaN(hireDate.getTime())) {
+              const formattedDate = hireDate.toLocaleDateString("vi-VN");
+              const daysDiff = Math.floor(
+                (new Date() - hireDate) / (1000 * 60 * 60 * 24)
+              );
+              const years = Math.floor(daysDiff / 365);
+              const months = Math.floor((daysDiff % 365) / 30);
+              infoValues[3].textContent = formattedDate;
+              const descElement = infoValues[3].nextElementSibling;
+              if (descElement)
+                descElement.textContent = `Thời gian làm việc: ${years} năm ${months} tháng`;
+            }
           }
+          if (infoValues[4]) {
+            const salaryFormatted = new Intl.NumberFormat("vi-VN").format(
+              parseInt(adminData.salary || 0)
+            );
+            infoValues[4].textContent = salaryFormatted + " VNĐ";
+          }
+
+          // Cập nhật stats grid
+          const statValues = document.querySelectorAll(
+            ".stat-item .stat-value"
+          );
+          if (statValues[0]) {
+            const salaryFormatted = new Intl.NumberFormat("vi-VN").format(
+              parseInt(adminData.salary || 0)
+            );
+            statValues[0].textContent = salaryFormatted + "₫";
+          }
+          if (statValues[2]) statValues[2].textContent = roleText;
         }
 
         updateAdminInfo();
